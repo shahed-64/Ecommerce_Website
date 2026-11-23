@@ -49,7 +49,7 @@
           <div class="cart-item-list">
             <div
               v-for="item in items"
-              :key="item.id"
+              :key="item.cartKey"
               class="cart-item"
             >
               <div class="item-image">
@@ -66,13 +66,27 @@
                   {{ item.name }}
                 </RouterLink>
 
+                <!-- SELECTED VARIANT -->
+                <div
+                  v-if="item.selectedColor || item.selectedSize"
+                  class="item-variant"
+                >
+                  <span v-if="item.selectedColor">
+                    Color: {{ item.selectedColor }}
+                  </span>
+
+                  <span v-if="item.selectedSize">
+                    Size: {{ item.selectedSize }}
+                  </span>
+                </div>
+
                 <div class="item-price-mobile">
-                  ৳{{ item.price.toLocaleString('en-BD') }}
+                  ৳{{ Number(item.price).toLocaleString('en-BD') }}
                 </div>
 
                 <button
                   class="remove-btn"
-                  @click="removeFromCart(item.id)"
+                  @click="removeFromCart(item.cartKey)"
                 >
                   <i class="bi bi-trash3"></i>
                   Remove
@@ -80,12 +94,12 @@
               </div>
 
               <div class="item-unit-price">
-                ৳{{ item.price.toLocaleString('en-BD') }}
+                ৳{{ Number(item.price).toLocaleString('en-BD') }}
               </div>
 
               <div class="quantity-control">
                 <button
-                  @click="updateQuantity(item.id, item.quantity - 1)"
+                  @click="updateQuantity(item.cartKey, item.quantity - 1)"
                   aria-label="Decrease quantity"
                 >
                   −
@@ -94,7 +108,7 @@
                 <span>{{ item.quantity }}</span>
 
                 <button
-                  @click="updateQuantity(item.id, item.quantity + 1)"
+                  @click="updateQuantity(item.cartKey, item.quantity + 1)"
                   aria-label="Increase quantity"
                 >
                   +
@@ -102,12 +116,12 @@
               </div>
 
               <div class="item-subtotal">
-                ৳{{ (item.price * item.quantity).toLocaleString('en-BD') }}
+                ৳{{ (Number(item.price) * item.quantity).toLocaleString('en-BD') }}
               </div>
 
               <button
                 class="remove-icon-btn"
-                @click="removeFromCart(item.id)"
+                @click="removeFromCart(item.cartKey)"
                 aria-label="Remove product"
               >
                 <i class="bi bi-x-lg"></i>
@@ -176,6 +190,7 @@ import { useRouter } from 'vue-router'
 import HeaderView from '../components/HeaderView.vue'
 import { useCart } from '../stores/cart'
 import FooterView from '../components/FooterView.vue'
+
 const router = useRouter()
 
 const {
@@ -345,6 +360,15 @@ function goToCheckout() {
 
 .item-price-mobile {
   display: none;
+}
+
+.item-variant {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 12px;
+  margin-top: 6px;
+  color: #777;
+  font-size: 11px;
 }
 
 .quantity-control {

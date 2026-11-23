@@ -17,8 +17,25 @@
         </RouterLink>
       </div>
 
+      <!-- LOADING -->
+      <div v-if="loading" class="status-message">
+        <i class="bi bi-arrow-repeat"></i>
+        Loading products...
+      </div>
+
+      <!-- ERROR -->
+      <div v-else-if="error" class="status-message error-message">
+        {{ error }}
+        <button @click="fetchProducts">Try Again</button>
+      </div>
+
+      <!-- EMPTY -->
+      <div v-else-if="products.length === 0" class="status-message">
+        No products available right now.
+      </div>
+
       <!-- PRODUCT GRID -->
-      <div class="product-grid">
+      <div v-else class="product-grid">
 
         <div
           v-for="product in products"
@@ -48,7 +65,7 @@
               class="product-image-link"
             >
               <img
-                :src="product.image"
+                :src="product.image || fallbackImage"
                 :alt="product.name"
                 class="product-image"
                 loading="lazy"
@@ -87,7 +104,10 @@
               {{ product.name }}
             </RouterLink>
 
-            <div class="product-rating">
+            <div
+              v-if="product.reviews > 0"
+              class="product-rating"
+            >
               <span class="stars">
                 <i class="bi bi-star-fill"></i>
                 <i class="bi bi-star-fill"></i>
@@ -107,10 +127,11 @@
 
             <button
               class="add-cart-btn"
+              :disabled="product.is_available === false"
               @click="addToCart(product)"
             >
               <i class="bi bi-bag-plus"></i>
-              Add to Cart
+              {{ product.is_available === false ? 'Unavailable' : 'Add to Cart' }}
             </button>
 
           </div>
@@ -139,7 +160,7 @@
 
           <div class="quick-view-image">
             <img
-              :src="selectedProduct.image"
+              :src="selectedProduct.image || fallbackImage"
               :alt="selectedProduct.name"
             />
           </div>
@@ -151,7 +172,10 @@
 
             <h2>{{ selectedProduct.name }}</h2>
 
-            <div class="product-rating">
+            <div
+              v-if="selectedProduct.reviews > 0"
+              class="product-rating"
+            >
               <span class="stars">
                 <i class="bi bi-star-fill"></i>
                 <i class="bi bi-star-fill"></i>
@@ -189,10 +213,11 @@
 
             <button
               class="quick-add-btn"
+              :disabled="selectedProduct.is_available === false"
               @click="addToCart(selectedProduct, quantity)"
             >
               <i class="bi bi-bag-plus"></i>
-              Add to Cart
+              {{ selectedProduct.is_available === false ? 'Unavailable' : 'Add to Cart' }}
             </button>
 
             <RouterLink
@@ -221,110 +246,82 @@
 </template>
 
 <script setup>
-import { ref, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const emit = defineEmits([
   'add-to-cart',
   'wishlist'
 ])
 
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
+
+const fallbackImage = 'https://placehold.co/600x800?text=Product'
+
 const wishlist = ref([])
+const products = ref([])
+const loading = ref(false)
+const error = ref('')
+
 const selectedProduct = ref(null)
 const quantity = ref(1)
 const cartMessage = ref('')
+
 let messageTimer = null
 
-const products = [
-  {
-    id: 1,
-    name: 'Premium Silk Saree',
-    category: 'Saree',
-    price: 2850,
-    oldPrice: 3500,
-    discount: 19,
-    reviews: 24,
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=800&q=85',
-    description: 'Beautiful traditional silk saree with an elegant design. Perfect for festivals, weddings and special occasions.'
-  },
-  {
-    id: 2,
-    name: 'Elegant Three Piece',
-    category: 'Three Piece',
-    price: 1950,
-    oldPrice: 2400,
-    discount: 19,
-    reviews: 18,
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e1?auto=format&fit=crop&w=800&q=85',
-    description: 'A stylish three-piece collection designed for comfort and elegance. A beautiful choice for everyday and special occasions.'
-  },
-  {
-    id: 3,
-    name: 'Premium Panjabi',
-    category: 'Panjabi',
-    price: 1650,
-    oldPrice: 2000,
-    discount: 18,
-    reviews: 32,
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=800&q=85',
-    description: 'A smart and comfortable panjabi with a timeless look. Perfect for celebrations and traditional occasions.'
-  },
-  {
-    id: 4,
-    name: 'Stylish Fashion Bag',
-    category: 'Accessories',
-    price: 1250,
-    oldPrice: 1500,
-    discount: 17,
-    reviews: 15,
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=800&q=85',
-    description: 'A fashionable bag with an elegant finish. A versatile accessory for your everyday style.'
-  },
-  {
-    id: 5,
-    name: 'Beauty Essentials Set',
-    category: 'Cosmetics',
-    price: 950,
-    oldPrice: 1200,
-    discount: 21,
-    reviews: 21,
-    image: 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=800&q=85',
-    description: 'A collection of beauty essentials selected to complement your everyday beauty routine.'
-  },
-  {
-    id: 6,
-    name: 'Classic Fashion Outfit',
-    category: 'Fashion',
-    price: 2200,
-    oldPrice: 2600,
-    discount: 15,
-    reviews: 12,
-    image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=800&q=85',
-    description: 'A modern fashion collection combining comfort and a stylish appearance.'
-  },
-  {
-    id: 7,
-    name: 'Elegant Women Outfit',
-    category: 'Women Fashion',
-    price: 1850,
-    oldPrice: 2200,
-    discount: 16,
-    reviews: 17,
-    image: 'https://images.unsplash.com/photo-1539109136881-3be0616acf4b?auto=format&fit=crop&w=800&q=85',
-    description: 'A beautiful outfit for women with a graceful and contemporary design.'
-  },
-  {
-    id: 8,
-    name: 'Premium Casual Wear',
-    category: 'Casual Wear',
-    price: 1450,
-    oldPrice: 1750,
-    discount: 17,
-    reviews: 14,
-    image: 'https://images.unsplash.com/photo-1529139574466-a303027c1d8b?auto=format&fit=crop&w=800&q=85',
-    description: 'Comfortable casual wear with a clean and fashionable design for everyday use.'
-  }
-]
+// LOAD PRODUCTS FROM BACKEND
+async function fetchProducts() {
+  loading.value = true
+  error.value = ''
 
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/storefront/products?per_page=8&sort=latest`
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to load products')
+    }
+
+    const result = await response.json()
+
+    products.value = (result.data || []).map(product => {
+      const price = Number(product.sale_price) || 0
+      const regularPrice = Number(product.regular_price) || 0
+
+      const hasDiscount =
+        regularPrice > price && regularPrice > 0
+
+      return {
+        id: product.id,
+        name: product.name,
+        category: product.category?.name || 'General',
+        price,
+        oldPrice: hasDiscount ? regularPrice : null,
+        discount: hasDiscount
+          ? Math.round(((regularPrice - price) / regularPrice) * 100)
+          : 0,
+        reviews: Number(product.reviews_count) || 0,
+        image: product.image_url
+          ? product.image_url.replace(
+              'http://localhost/',
+              'http://127.0.0.1:8000/'
+            )
+          : '',
+        description: product.description || '',
+        is_available: product.is_available,
+        backendData: product
+      }
+    })
+
+  } catch (err) {
+    console.error('Trending Products Error:', err)
+    error.value = 'Unable to load products. Please try again.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// WISHLIST
 function toggleWishlist(product) {
   const index = wishlist.value.indexOf(product.id)
 
@@ -337,6 +334,7 @@ function toggleWishlist(product) {
   }
 }
 
+// QUICK VIEW
 function openQuickView(product) {
   selectedProduct.value = product
   quantity.value = 1
@@ -358,13 +356,26 @@ function decreaseQuantity() {
   }
 }
 
+// ADD TO CART
 function addToCart(product, qty = 1) {
+  if (product.is_available === false) {
+    showMessage('This product is currently unavailable.')
+    return
+  }
+
   emit('add-to-cart', {
     product,
     quantity: qty
   })
 
-  cartMessage.value = `${product.name} added to cart`
+  showMessage(`${product.name} added to cart`)
+
+  closeQuickView()
+}
+
+// CART MESSAGE
+function showMessage(message) {
+  cartMessage.value = message
 
   if (messageTimer) {
     clearTimeout(messageTimer)
@@ -373,12 +384,15 @@ function addToCart(product, qty = 1) {
   messageTimer = setTimeout(() => {
     cartMessage.value = ''
   }, 2500)
-
-  closeQuickView()
 }
+
+onMounted(() => {
+  fetchProducts()
+})
 
 onUnmounted(() => {
   document.body.style.overflow = ''
+
   if (messageTimer) {
     clearTimeout(messageTimer)
   }
@@ -653,6 +667,40 @@ onUnmounted(() => {
 .add-cart-btn:hover {
   background: #bd914c;
   color: #fff;
+}
+
+.add-cart-btn:disabled,
+.quick-add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* LOADING / ERROR */
+
+.status-message {
+  padding: 45px 15px;
+  color: #777;
+  font-size: 14px;
+  text-align: center;
+}
+
+.status-message i {
+  margin-right: 7px;
+  font-size: 18px;
+}
+
+.error-message {
+  color: #b84949;
+}
+
+.error-message button {
+  display: block;
+  margin: 12px auto 0;
+  padding: 9px 18px;
+  border: 1px solid #bd914c;
+  background: #fff;
+  color: #a77c35;
+  cursor: pointer;
 }
 
 /* QUICK VIEW */

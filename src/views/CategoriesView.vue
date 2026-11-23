@@ -45,15 +45,46 @@
         </RouterLink>
       </div>
 
-      <div class="category-grid">
+      <!-- LOADING -->
+      <div v-if="loading" class="status-message">
+        <i class="bi bi-arrow-repeat"></i>
+        Loading categories...
+      </div>
+
+      <!-- ERROR -->
+      <div v-else-if="error" class="status-message error-message">
+        {{ error }}
+        <button @click="fetchCategories">Try Again</button>
+      </div>
+
+      <!-- EMPTY -->
+      <div v-else-if="categories.length === 0" class="status-message">
+        No categories available right now.
+      </div>
+
+      <!-- CATEGORY GRID -->
+      <div v-else class="category-grid">
         <RouterLink
-          v-for="category in categories"
+          v-for="(category, index) in categories"
           :key="category.id"
           :to="{ path: '/shop', query: { category: category.filter } }"
           class="category-card"
         >
-          <div class="category-image">
-            <img :src="category.image" :alt="category.name" />
+          <div
+            class="category-image"
+            :class="`category-color-${index % 8}`"
+          >
+            <div class="category-decoration">
+              <span class="decoration-circle"></span>
+              <span class="decoration-circle second"></span>
+            </div>
+
+            <div class="category-name-content">
+              <span class="category-label">EXPLORE COLLECTION</span>
+              <h3>{{ category.name }}</h3>
+              <span class="category-line"></span>
+              <p>DISCOVER YOUR STYLE</p>
+            </div>
 
             <div class="category-overlay">
               <span class="category-explore">
@@ -96,6 +127,7 @@
 </template>
 
 <script setup>
+import { ref, onMounted } from 'vue'
 import HeaderView from '../components/HeaderView.vue'
 import FooterView from '../components/FooterView.vue'
 import { RouterLink } from 'vue-router'
@@ -106,50 +138,52 @@ const {
   cartTotal
 } = useCart()
 
-const categories = [
-  {
-    id: 1,
-    name: 'Saree Collection',
-    filter: 'Saree',
-    description: 'Timeless traditional elegance',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=85'
-  },
-  {
-    id: 2,
-    name: 'Three Piece',
-    filter: 'Three Piece',
-    description: 'Beautiful styles for every occasion',
-    image: 'https://images.unsplash.com/photo-1597983073493-88cd35cf93a0?auto=format&fit=crop&w=900&q=85'
-  },
-  {
-    id: 3,
-    name: 'Panjabi',
-    filter: 'Panjabi',
-    description: 'Classic style with modern comfort',
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=900&q=85'
-  },
-  {
-    id: 4,
-    name: 'Lungi',
-    filter: 'Lungi',
-    description: 'Comfort in every thread',
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=900&q=85'
-  },
-  {
-    id: 5,
-    name: 'Fabric Collection',
-    filter: 'Fabric',
-    description: 'Create your own beautiful style',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=85'
-  },
-  {
-    id: 6,
-    name: 'Fashion Collection',
-    filter: 'All',
-    description: 'Everyday fashion essentials',
-    image: 'https://images.unsplash.com/photo-1490481651871-ab68de25d43d?auto=format&fit=crop&w=900&q=85'
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
+
+const categories = ref([])
+const loading = ref(false)
+const error = ref('')
+
+// LOAD CATEGORIES FROM BACKEND
+async function fetchCategories() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/storefront/categories`
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to load categories')
+    }
+
+    const result = await response.json()
+
+    categories.value = (result.data || []).map(category => {
+      const name = category.name || 'General'
+
+      return {
+        id: category.id,
+        name,
+        filter: name,
+        description:
+          category.description || 'Explore our beautiful collection',
+        backendData: category
+      }
+    })
+
+  } catch (err) {
+    console.error('Category Loading Error:', err)
+    error.value = 'Unable to load categories. Please try again.'
+  } finally {
+    loading.value = false
   }
-]
+}
+
+onMounted(() => {
+  fetchCategories()
+})
 </script>
 
 <style scoped>
@@ -287,20 +321,129 @@ const categories = [
   height: 360px;
   position: relative;
   overflow: hidden;
-  background: #f5f1eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  isolation: isolate;
+  transition: transform .4s;
 }
 
-.category-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .6s;
+/* CATEGORY BACKGROUND COLORS */
+.category-color-0 {
+  background: linear-gradient(145deg, #f3e4dc, #dfc0b1);
+  color: #704638;
 }
 
-.category-card:hover .category-image img {
-  transform: scale(1.08);
+.category-color-1 {
+  background: linear-gradient(145deg, #e9e7f0, #c8c5dd);
+  color: #484568;
 }
 
+.category-color-2 {
+  background: linear-gradient(145deg, #e5eee4, #bfd0bd);
+  color: #405b40;
+}
+
+.category-color-3 {
+  background: linear-gradient(145deg, #f2ead9, #dfcda9);
+  color: #79613a;
+}
+
+.category-color-4 {
+  background: linear-gradient(145deg, #e6eaf0, #c4cedd);
+  color: #40536f;
+}
+
+.category-color-5 {
+  background: linear-gradient(145deg, #f2e4e8, #dfc1cc);
+  color: #754b5c;
+}
+
+.category-color-6 {
+  background: linear-gradient(145deg, #e8e3d9, #d1c4ad);
+  color: #66543d;
+}
+
+.category-color-7 {
+  background: linear-gradient(145deg, #e4e9e7, #c3d0ca);
+  color: #405a50;
+}
+
+/* DECORATION */
+.category-decoration {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.decoration-circle {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border: 1px solid currentColor;
+  border-radius: 50%;
+  opacity: .13;
+  top: -100px;
+  right: -90px;
+}
+
+.decoration-circle.second {
+  width: 210px;
+  height: 210px;
+  top: auto;
+  right: auto;
+  bottom: -100px;
+  left: -60px;
+}
+
+/* CATEGORY NAME */
+.category-name-content {
+  padding: 25px;
+  position: relative;
+  z-index: 1;
+  transition: transform .4s;
+}
+
+.category-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  opacity: .75;
+}
+
+.category-name-content h3 {
+  font-family: Georgia, serif;
+  font-size: clamp(27px, 3vw, 39px);
+  font-weight: 500;
+  line-height: 1.2;
+  margin: 20px 0;
+  overflow-wrap: anywhere;
+}
+
+.category-line {
+  display: block;
+  width: 48px;
+  height: 1px;
+  background: currentColor;
+  margin: 0 auto 17px;
+  opacity: .55;
+}
+
+.category-name-content p {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  margin: 0;
+  opacity: .75;
+}
+
+.category-card:hover .category-name-content {
+  transform: translateY(-8px);
+}
+
+/* HOVER OVERLAY */
 .category-overlay {
   position: absolute;
   inset: 0;
@@ -308,7 +451,7 @@ const categories = [
   align-items: flex-end;
   justify-content: center;
   padding: 22px;
-  background: linear-gradient(transparent 45%, rgba(0,0,0,.55));
+  background: linear-gradient(transparent 45%, rgba(0,0,0,.45));
   opacity: 0;
   transition: .3s;
 }
@@ -328,6 +471,7 @@ const categories = [
   margin-left: 7px;
 }
 
+/* CATEGORY INFO */
 .category-info {
   display: flex;
   justify-content: space-between;
@@ -366,6 +510,33 @@ const categories = [
   background: #29231f;
   color: #fff;
   border-color: #29231f;
+}
+
+/* LOADING / ERROR */
+.status-message {
+  padding: 45px 15px;
+  color: #777;
+  font-size: 14px;
+  text-align: center;
+}
+
+.status-message i {
+  margin-right: 7px;
+  font-size: 18px;
+}
+
+.error-message {
+  color: #b84949;
+}
+
+.error-message button {
+  display: block;
+  margin: 12px auto 0;
+  padding: 9px 18px;
+  border: 1px solid #bd914c;
+  background: #fff;
+  color: #a77c35;
+  cursor: pointer;
 }
 
 /* BOTTOM PROMO */
@@ -456,6 +627,25 @@ const categories = [
 
   .category-image {
     height: 235px;
+  }
+
+  .category-name-content {
+    padding: 12px;
+  }
+
+  .category-label {
+    font-size: 8px;
+    letter-spacing: 2px;
+  }
+
+  .category-name-content h3 {
+    font-size: clamp(19px, 5vw, 26px);
+    margin: 14px 0;
+  }
+
+  .category-name-content p {
+    font-size: 8px;
+    letter-spacing: 1px;
   }
 
   .category-info h3 {

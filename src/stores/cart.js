@@ -1,14 +1,23 @@
-
 import { reactive, computed } from 'vue'
 
 const state = reactive({
   items: []
 })
 
-// Add product to cart
+// প্রতিটি Product Variant-এর জন্য আলাদা Cart Key
+function getCartItemKey(product) {
+  if (product.variant_id) {
+    return `${product.id}-variant-${product.variant_id}`
+  }
+
+  return `${product.id}-${product.selectedColor || ''}-${product.selectedSize || ''}`
+}
+
 function addToCart(product, quantity = 1) {
+  const cartKey = getCartItemKey(product)
+
   const existingItem = state.items.find(
-    item => item.id === product.id
+    item => item.cartKey === cartKey
   )
 
   if (existingItem) {
@@ -16,40 +25,41 @@ function addToCart(product, quantity = 1) {
   } else {
     state.items.push({
       ...product,
+      cartKey,
       quantity
     })
   }
 }
 
-// Remove product from cart
-function removeFromCart(productId) {
-  state.items = state.items.filter(
-    item => item.id !== productId
+function removeFromCart(identifier) {
+  const index = state.items.findIndex(
+    item => item.cartKey === identifier || item.id === identifier
   )
+
+  if (index !== -1) {
+    state.items.splice(index, 1)
+  }
 }
 
-// Update product quantity
-function updateQuantity(productId, quantity) {
+function updateQuantity(identifier, quantity) {
   const item = state.items.find(
-    item => item.id === productId
+    item => item.cartKey === identifier || item.id === identifier
   )
 
   if (!item) return
 
   if (quantity <= 0) {
-    removeFromCart(productId)
+    removeFromCart(item.cartKey)
     return
   }
 
   item.quantity = quantity
 }
 
-// Clear entire cart
 function clearCart() {
   state.items.splice(0, state.items.length)
 }
 
-// Total product quantity
 const cartCount = computed(() => {
   return state.items.reduce(
     (total, item) => total + item.quantity,
@@ -57,7 +67,6 @@ const cartCount = computed(() => {
   )
 })
 
-// Total cart price
 const cartTotal = computed(() => {
   return state.items.reduce(
     (total, item) => total + item.price * item.quantity,

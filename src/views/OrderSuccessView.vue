@@ -21,10 +21,10 @@
 
         <div class="order-id-box">
           <span>ORDER NUMBER</span>
-          <strong>{{ order.order_id || 'BK-DEMO-0001' }}</strong>
+          <strong>{{ order.order_id || 'N/A' }}</strong>
           <small>
             <i class="bi bi-clock"></i>
-            {{ order.created_at ? formatDate(order.created_at) : 'Demo Order' }}
+            {{ order.created_at ? formatDate(order.created_at) : 'Date not available' }}
           </small>
         </div>
 
@@ -32,7 +32,7 @@
           <span>Order Status</span>
           <span class="status-badge">
             <i class="bi bi-check-circle-fill"></i>
-            Order Placed
+            {{ formatStatus(order.order_status) }}
           </span>
         </div>
 
@@ -70,7 +70,9 @@
 
               <p>
                 <span>Payment Status</span>
-                <strong class="unpaid-status">Pending</strong>
+                <strong class="unpaid-status">
+                  {{ formatStatus(order.payment_status) }}
+                </strong>
               </p>
             </div>
           </section>
@@ -80,12 +82,21 @@
           <h4>Order Details</h4>
 
           <div
-            v-for="item in order.products || []"
-            :key="item.id"
+            v-for="(item, index) in order.products || []"
+            :key="`${item.id}-${item.variant_id || index}-${index}`"
             class="product-row"
           >
             <div class="product-info">
               <strong>{{ item.name }}</strong>
+
+              <small v-if="item.variant_name">
+                {{ item.variant_name }}
+              </small>
+
+              <small v-if="item.sku">
+                SKU: {{ item.sku }}
+              </small>
+
               <small>
                 ৳{{ Number(item.price).toLocaleString() }}
                 × {{ item.quantity }}
@@ -93,14 +104,41 @@
             </div>
 
             <strong>
-              ৳{{ (item.price * item.quantity).toLocaleString() }}
+              ৳{{ (Number(item.price) * Number(item.quantity)).toLocaleString() }}
+            </strong>
+          </div>
+
+          <div class="summary-amount-row">
+            <span>Subtotal</span>
+            <strong>
+              ৳{{ Number(order.subtotal || 0).toLocaleString() }}
+            </strong>
+          </div>
+
+          <div
+            v-if="Number(order.shipping_charge || 0) > 0"
+            class="summary-amount-row"
+          >
+            <span>Shipping</span>
+            <strong>
+              ৳{{ Number(order.shipping_charge).toLocaleString() }}
+            </strong>
+          </div>
+
+          <div
+            v-if="Number(order.discount || 0) > 0"
+            class="summary-amount-row"
+          >
+            <span>Discount</span>
+            <strong>
+              - ৳{{ Number(order.discount).toLocaleString() }}
             </strong>
           </div>
 
           <div class="total-row">
             <span>Grand Total</span>
             <strong>
-              ৳{{ Number(order.subtotal || 0).toLocaleString() }}
+              ৳{{ Number(order.total ?? order.subtotal ?? 0).toLocaleString() }}
             </strong>
           </div>
         </section>
@@ -127,15 +165,20 @@
         </p>
       </div>
     </main>
-      <FooterView />
+
+    <FooterView />
   </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import HeaderView from '../components/HeaderView.vue'
 import { useCart } from '../stores/cart'
 import FooterView from '../components/FooterView.vue'
+
+const router = useRouter()
+
 const {
   cartCount,
   cartTotal
@@ -149,6 +192,10 @@ const order = ref(
     : {}
 )
 
+if (!savedOrder) {
+  router.replace('/shop')
+}
+
 function formatDate(date) {
   return new Date(date).toLocaleString('en-BD', {
     day: 'numeric',
@@ -157,6 +204,14 @@ function formatDate(date) {
     hour: 'numeric',
     minute: '2-digit'
   })
+}
+
+function formatStatus(status) {
+  if (!status) return 'N/A'
+
+  return status
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, char => char.toUpperCase())
 }
 </script>
 
@@ -356,6 +411,18 @@ function formatDate(date) {
 
 .product-row > strong {
   white-space: nowrap;
+}
+
+.summary-amount-row {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 13px;
+  font-size: 12px;
+  color: #777;
+}
+
+.summary-amount-row strong {
+  color: #444;
 }
 
 .total-row {

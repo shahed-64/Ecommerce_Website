@@ -1,10 +1,6 @@
-
 <template>
   <div class="deals-page">
-    <HeaderView
-      :cart-count="cartCount"
-      :cart-total="cartTotal"
-    />
+    <HeaderView :cart-count="cartCount" :cart-total="cartTotal" />
 
     <main>
       <!-- DEALS HERO -->
@@ -23,9 +19,9 @@
             EXPLORE DEALS <i class="bi bi-arrow-right"></i>
           </RouterLink>
 
-          <div class="hero-discount">
+          <div class="hero-discount" v-if="maxDiscount > 0">
             <strong>UP TO</strong>
-            <span>50%</span>
+            <span>{{ maxDiscount }}%</span>
             <small>OFF</small>
           </div>
         </div>
@@ -40,53 +36,55 @@
         </p>
       </section>
 
-      <!-- DEAL CATEGORIES -->
-      <section class="deal-categories">
-        <RouterLink
-          v-for="category in dealCategories"
-          :key="category.name"
-          :to="{ path: '/shop', query: { category: category.filter } }"
-          class="deal-category"
-        >
-          <div class="category-image">
-            <img :src="category.image" :alt="category.name" />
-            <span>{{ category.discount }}</span>
-          </div>
-
-          <h3>{{ category.name }}</h3>
-          <p>{{ category.description }}</p>
-          <span class="category-link">
-            SHOP NOW <i class="bi bi-arrow-right"></i>
-          </span>
-        </RouterLink>
-      </section>
-
-      <!-- PRODUCTS -->
+      <!-- DISCOUNT PRODUCTS -->
       <section class="deals-products">
+
         <div class="section-heading">
-          <div>
-            <span class="section-subtitle">BEST SAVINGS</span>
-            <h2>Hot Deals</h2>
-          </div>
+          <div></div>
 
           <RouterLink to="/shop" class="view-all">
             VIEW ALL PRODUCTS <i class="bi bi-arrow-right"></i>
           </RouterLink>
         </div>
 
-        <div class="product-grid">
+        <div v-if="loading" class="deals-message">
+          <i class="bi bi-arrow-repeat"></i>
+          Loading deals...
+        </div>
+
+        <div v-else-if="errorMessage" class="deals-message error-message">
+          {{ errorMessage }}
+        </div>
+
+        <div v-else-if="dealProducts.length === 0" class="deals-message">
+          <i class="bi bi-tags"></i>
+          <h3>No Special Deals Available</h3>
+          <p>There are currently no products with discounts.</p>
+          <RouterLink to="/shop" class="empty-shop-btn">
+            EXPLORE ALL PRODUCTS
+          </RouterLink>
+        </div>
+
+        <div v-else class="product-grid">
           <div
             v-for="product in dealProducts"
-            :key="product.id"
+            :key="product.cartKey"
             class="product-card"
           >
             <div class="product-image">
               <RouterLink :to="`/product/${product.id}`">
-                <img :src="product.image" :alt="product.name" />
+                <img
+                  v-if="product.image"
+                  :src="product.image"
+                  :alt="product.name"
+                />
+                <div v-else class="no-product-image">
+                  <i class="bi bi-image"></i>
+                </div>
               </RouterLink>
 
               <span class="discount-badge">
-                {{ product.discount }}% OFF
+                {{ product.discountPercentage }}% OFF
               </span>
 
               <button
@@ -116,19 +114,33 @@
                 {{ product.name }}
               </RouterLink>
 
-              <div class="product-rating">
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-fill"></i>
-                <i class="bi bi-star-half"></i>
-                <span>({{ product.reviews }})</span>
-              </div>
+              <small
+                v-if="product.selectedColor || product.selectedSize"
+                class="variant-label"
+              >
+                <span v-if="product.selectedColor">
+                  {{ product.selectedColor }}
+                </span>
+                <span v-if="product.selectedColor && product.selectedSize">
+                  |
+                </span>
+                <span v-if="product.selectedSize">
+                  {{ product.selectedSize }}
+                </span>
+              </small>
 
               <div class="product-price">
-                <strong>৳{{ product.price.toLocaleString('en-US') }}</strong>
-                <del>৳{{ product.oldPrice.toLocaleString('en-US') }}</del>
+                <strong>
+                  ৳{{ product.price.toLocaleString('en-US') }}
+                </strong>
+                <del>
+                  ৳{{ product.oldPrice.toLocaleString('en-US') }}
+                </del>
               </div>
+
+              <span class="you-save">
+                You save ৳{{ product.discountAmount.toLocaleString('en-US') }}
+              </span>
             </div>
           </div>
         </div>
@@ -166,7 +178,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 
 import HeaderView from '../components/HeaderView.vue'
@@ -181,124 +193,158 @@ const {
   addToCart
 } = useCart()
 
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
+
 const toastMessage = ref('')
+const loading = ref(true)
+const errorMessage = ref('')
+
+const dealProducts = ref([])
+
 let toastTimer = null
 
-const dealCategories = [
-  {
-    name: 'Saree Collection',
-    filter: 'Saree',
-    discount: 'UP TO 40% OFF',
-    description: 'Elegant sarees for every occasion',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    name: 'Three Piece',
-    filter: 'Three Piece',
-    discount: 'UP TO 30% OFF',
-    description: 'Beautiful styles for everyday elegance',
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e8?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    name: 'Panjabi Collection',
-    filter: 'Panjabi',
-    discount: 'UP TO 25% OFF',
-    description: 'Traditional style with modern comfort',
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    name: 'Fabric Collection',
-    filter: 'Fabric',
-    discount: 'UP TO 50% OFF',
-    description: 'Premium fabrics at special prices',
-    image: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&w=700&q=85'
-  }
-]
+const maxDiscount = computed(() => {
+  if (!dealProducts.value.length) return 0
 
-// Demo products
-const dealProducts = [
-  {
-    id: 101,
-    name: 'Premium Silk Saree',
-    category: 'Saree',
-    price: 2850,
-    oldPrice: 3800,
-    discount: 25,
-    reviews: 48,
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 102,
-    name: 'Elegant Party Three Piece',
-    category: 'Three Piece',
-    price: 1950,
-    oldPrice: 2600,
-    discount: 25,
-    reviews: 32,
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e8?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 103,
-    name: 'Classic Traditional Panjabi',
-    category: 'Panjabi',
-    price: 1450,
-    oldPrice: 1900,
-    discount: 24,
-    reviews: 27,
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 104,
-    name: 'Premium Cotton Lungi',
-    category: 'Lungi',
-    price: 650,
-    oldPrice: 850,
-    discount: 24,
-    reviews: 19,
-    image: 'https://images.unsplash.com/photo-1598033129183-c4f50c736f10?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 105,
-    name: 'Royal Designer Saree',
-    category: 'Saree',
-    price: 3200,
-    oldPrice: 4200,
-    discount: 24,
-    reviews: 36,
-    image: 'https://images.unsplash.com/photo-1585487000160-6ebcfceb0d03?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 106,
-    name: 'Premium Casual Three Piece',
-    category: 'Three Piece',
-    price: 1750,
-    oldPrice: 2300,
-    discount: 24,
-    reviews: 21,
-    image: 'https://images.unsplash.com/photo-1594633312681-425c7b97ccd1?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 107,
-    name: 'Elegant Cotton Panjabi',
-    category: 'Panjabi',
-    price: 1250,
-    oldPrice: 1650,
-    discount: 24,
-    reviews: 16,
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 108,
-    name: 'Premium Printed Fabric',
-    category: 'Fabric',
-    price: 450,
-    oldPrice: 600,
-    discount: 25,
-    reviews: 14,
-    image: 'https://images.unsplash.com/photo-1605000797499-95a51c5269ae?auto=format&fit=crop&w=700&q=85'
-  }
-]
+  return Math.max(
+    ...dealProducts.value.map(product => product.discountPercentage)
+  )
+})
 
+function extractList(response) {
+  if (Array.isArray(response)) return response
+  if (Array.isArray(response?.data)) return response.data
+  if (Array.isArray(response?.data?.data)) return response.data.data
+  return []
+}
+
+function fixImageUrl(url) {
+  if (!url) return ''
+
+  return url.replace(
+    'http://localhost/',
+    'http://127.0.0.1:8000/'
+  )
+}
+
+// Calculate discount and create a deal card
+function createDealProduct(item, variant = null) {
+  const salePrice = Number(
+    variant?.sale_price || item.sale_price || 0
+  )
+
+  // Prefer variant discount.
+  // If variant discount is zero, use product-level discount.
+  const variantDiscount = Number(variant?.discount || 0)
+  const productDiscount = Number(item.discount || 0)
+
+  const discountAmount = variantDiscount > 0
+    ? variantDiscount
+    : productDiscount
+
+  if (
+    !item.id ||
+    salePrice <= 0 ||
+    discountAmount <= 0 ||
+    discountAmount >= salePrice
+  ) {
+    return null
+  }
+
+  const finalPrice = salePrice - discountAmount
+
+  const discountPercentage = Math.round(
+    (discountAmount / salePrice) * 100
+  )
+
+  return {
+    id: item.id,
+    variant_id: variant?.id || null,
+
+    cartKey: variant?.id
+      ? `${item.id}-variant-${variant.id}`
+      : `${item.id}-product`,
+
+    name: item.name,
+    category: item.category?.name || 'Collection',
+    categoryId: item.category_id || item.category?.id,
+
+    price: finalPrice,
+    oldPrice: salePrice,
+    discountAmount,
+    discountPercentage,
+
+    image: fixImageUrl(item.image_url),
+
+    selectedColor: variant?.color || '',
+    selectedSize: variant?.size || '',
+    sku: variant?.sku || item.sku || ''
+  }
+}
+
+// Load discounted products
+async function fetchDeals() {
+  loading.value = true
+  errorMessage.value = ''
+
+  try {
+    const productResponse = await fetch(
+      `${API_BASE_URL}/storefront/products?per_page=100`
+    )
+
+    if (!productResponse.ok) {
+      throw new Error('Unable to load deals. Please try again.')
+    }
+
+    const productData = await productResponse.json()
+
+    const products = extractList(productData)
+    const deals = []
+
+    products.forEach(item => {
+      // Skip unavailable products
+      if (!item.id || item.is_available === false) {
+        return
+      }
+
+      const variants = Array.isArray(item.variants)
+        ? item.variants
+        : []
+
+      if (variants.length > 0) {
+        // Each available discounted variant becomes a separate deal
+        variants.forEach(variant => {
+          if (variant.is_available === false) {
+            return
+          }
+
+          const deal = createDealProduct(item, variant)
+
+          if (deal) {
+            deals.push(deal)
+          }
+        })
+      } else {
+        // Products without variants use product-level discount
+        const deal = createDealProduct(item)
+
+        if (deal) {
+          deals.push(deal)
+        }
+      }
+    })
+
+    dealProducts.value = deals
+
+  } catch (error) {
+    console.error('Deals loading error:', error)
+    errorMessage.value = error.message || 'Failed to load deals.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Toast notification
 function showToast(message) {
   toastMessage.value = message
 
@@ -309,14 +355,36 @@ function showToast(message) {
   }, 2500)
 }
 
+// Add the correct discounted variant to cart
 function addProduct(product) {
-  addToCart(product, 1)
+  addToCart(
+    {
+      id: product.id,
+      variant_id: product.variant_id,
+
+      name: product.name,
+      category: product.category,
+      image: product.image,
+
+      price: product.price,
+
+      selectedColor: product.selectedColor,
+      selectedSize: product.selectedSize,
+      sku: product.sku
+    },
+    1
+  )
+
   showToast(`${product.name} added to cart!`)
 }
 
 function goToProduct(id) {
   router.push(`/product/${id}`)
 }
+
+onMounted(() => {
+  fetchDeals()
+})
 </script>
 
 <style scoped>
@@ -461,78 +529,11 @@ function goToProduct(id) {
   margin: 0;
 }
 
-/* CATEGORIES */
-
-.deal-categories {
-  max-width: 1250px;
-  margin: 25px auto 85px;
-  padding: 0 25px;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 25px;
-}
-
-.deal-category {
-  color: #292522;
-  text-decoration: none;
-  text-align: center;
-}
-
-.category-image {
-  height: 300px;
-  position: relative;
-  overflow: hidden;
-  background: #f4f0eb;
-}
-
-.category-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform .6s;
-}
-
-.deal-category:hover .category-image img {
-  transform: scale(1.07);
-}
-
-.category-image > span {
-  position: absolute;
-  top: 15px;
-  left: 15px;
-  background: #292522;
-  color: #fff;
-  padding: 9px 12px;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: .5px;
-}
-
-.deal-category h3 {
-  font-family: Georgia, serif;
-  font-size: 21px;
-  font-weight: 500;
-  margin: 19px 0 7px;
-}
-
-.deal-category p {
-  color: #888;
-  font-size: 12px;
-  margin-bottom: 12px;
-}
-
-.category-link {
-  color: #a77d48;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 1px;
-}
-
 /* PRODUCTS */
 
 .deals-products {
   background: #f9f7f4;
-  padding: 75px 25px 85px;
+  padding: 35px 25px 85px;
 }
 
 .section-heading {
@@ -574,7 +575,7 @@ function goToProduct(id) {
 
 .product-image {
   position: relative;
-  height: 310px;
+   height: 260px;
   overflow: hidden;
   background: #f0ece7;
 }
@@ -590,6 +591,16 @@ function goToProduct(id) {
   height: 100%;
   object-fit: cover;
   transition: transform .5s;
+}
+
+.no-product-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #aaa;
+  font-size: 35px;
 }
 
 .product-card:hover .product-image img {
@@ -678,14 +689,11 @@ function goToProduct(id) {
   color: #a77d48;
 }
 
-.product-rating {
-  color: #d3a34c;
+.variant-label {
+  display: block;
+  color: #888;
   font-size: 11px;
-}
-
-.product-rating span {
-  color: #999;
-  margin-left: 5px;
+  margin: 4px 0;
 }
 
 .product-price {
@@ -703,6 +711,63 @@ function goToProduct(id) {
 .product-price del {
   color: #aaa;
   font-size: 13px;
+}
+
+.you-save {
+  display: inline-block;
+  margin-top: 7px;
+  color: #45815a;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+/* LOADING / EMPTY */
+
+.deals-message {
+  max-width: 1200px;
+  min-height: 180px;
+  margin: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: #888;
+  font-size: 14px;
+  gap: 10px;
+}
+
+.deals-message > i {
+  font-size: 30px;
+  color: #bd955e;
+}
+
+.deals-message h3 {
+  color: #292522;
+  font-family: Georgia, serif;
+  font-size: 23px;
+  font-weight: 500;
+  margin: 5px 0 0;
+}
+
+.deals-message p {
+  margin: 0;
+}
+
+.error-message {
+  color: #b33;
+}
+
+.empty-shop-btn {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 12px 20px;
+  background: #292522;
+  color: #fff;
+  text-decoration: none;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
 }
 
 /* PROMO */
@@ -789,13 +854,8 @@ function goToProduct(id) {
 /* RESPONSIVE */
 
 @media (max-width: 1000px) {
-  .deal-categories,
   .product-grid {
     grid-template-columns: repeat(2, 1fr);
-  }
-
-  .category-image {
-    height: 330px;
   }
 
   .hero-discount {
@@ -853,26 +913,8 @@ function goToProduct(id) {
     font-size: 30px;
   }
 
-  .deal-categories {
-    padding: 0 15px;
-    gap: 22px 12px;
-    margin-bottom: 55px;
-  }
-
-  .category-image {
-    height: 210px;
-  }
-
-  .deal-category h3 {
-    font-size: 17px;
-  }
-
-  .deal-category p {
-    font-size: 11px;
-  }
-
   .deals-products {
-    padding: 55px 12px;
+    padding: 25px 12px 55px;
   }
 
   .section-heading {
@@ -942,5 +984,20 @@ function goToProduct(id) {
     bottom: 15px;
     text-align: center;
   }
+}
+.product-info {
+  padding: 12px 15px 12px;
+}
+
+.product-name {
+  margin: 4px 0;
+}
+
+.product-price {
+  margin-top: 6px;
+}
+
+.you-save {
+  margin-top: 4px;
 }
 </style>

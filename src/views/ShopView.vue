@@ -28,8 +28,9 @@
           <h2>Shop All Products</h2>
           <p>Find something beautiful for every occasion.</p>
         </div>
+
         <div class="product-count">
-          <strong>{{ filteredProducts.length }}</strong> Products
+          <strong>{{ totalProducts }}</strong> Products
         </div>
       </div>
 
@@ -57,8 +58,22 @@
         </div>
       </div>
 
+      <!-- LOADING -->
+      <div v-if="isLoading" class="loading-products">
+        <div class="loading-spinner"></div>
+        <p>Loading products...</p>
+      </div>
+
+      <!-- API ERROR -->
+      <div v-else-if="apiError" class="empty-products">
+        <i class="bi bi-exclamation-circle"></i>
+        <h3>Unable to load products</h3>
+        <p>{{ apiError }}</p>
+        <button @click="fetchProducts">Try Again</button>
+      </div>
+
       <!-- PRODUCT GRID -->
-      <div v-if="filteredProducts.length" class="product-grid">
+      <div v-else-if="filteredProducts.length" class="product-grid">
         <article
           v-for="product in filteredProducts"
           :key="product.id"
@@ -66,12 +81,12 @@
         >
           <div class="product-image">
             <RouterLink :to="`/product/${product.id}`">
-              <img :src="product.image" :alt="product.name" />
+              <img
+                :src="product.image"
+                :alt="product.name"
+                @error="handleImageError"
+              />
             </RouterLink>
-
-            <span v-if="product.discount" class="discount-badge">
-              -{{ product.discount }}%
-            </span>
 
             <button
               class="quick-view"
@@ -83,15 +98,18 @@
 
             <button
               class="add-cart-btn"
+              :disabled="!product.is_available"
               @click="addProduct(product)"
             >
               <i class="bi bi-bag-plus"></i>
-              Add to Cart
+              {{ product.is_available ? 'Add to Cart' : 'Out of Stock' }}
             </button>
           </div>
 
           <div class="product-info">
-            <span class="product-category">{{ product.category }}</span>
+            <span class="product-category">
+              {{ product.category }}
+            </span>
 
             <RouterLink
               :to="`/product/${product.id}`"
@@ -100,25 +118,14 @@
               {{ product.name }}
             </RouterLink>
 
-            <div class="product-rating">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-half"></i>
-              <span>({{ product.reviews }})</span>
-            </div>
-
             <div class="product-price">
               <strong>৳{{ product.price.toLocaleString() }}</strong>
-              <del v-if="product.oldPrice">
-                ৳{{ product.oldPrice.toLocaleString() }}
-              </del>
             </div>
           </div>
         </article>
       </div>
 
+      <!-- EMPTY -->
       <div v-else class="empty-products">
         <i class="bi bi-search"></i>
         <h3>No products found</h3>
@@ -140,11 +147,26 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
-import { useRouter, useRoute, RouterLink } from 'vue-router'
+import {
+  ref,
+  computed,
+  onMounted,
+  onUnmounted,
+  watch
+} from 'vue'
+
+import {
+  useRouter,
+  useRoute,
+  RouterLink
+} from 'vue-router'
+
 import HeaderView from '../components/HeaderView.vue'
 import FooterView from '../components/FooterView.vue'
 import { useCart } from '../stores/cart'
+
+// LOCAL BACKEND API
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
 
 const router = useRouter()
 const route = useRoute()
@@ -156,31 +178,148 @@ const {
 } = useCart()
 
 // CATEGORIES
-const categories = [
-  'All',
-  'Saree',
-  'Three Piece',
-  'Panjabi',
-  'Lungi',
-  'Fabric'
-]
+const categories = ref(['All'])
+const categoryItems = ref([])
 
-// CATEGORY FILTER
 const selectedCategory = ref(
-  categories.includes(route.query.category)
+  typeof route.query.category === 'string'
     ? route.query.category
     : 'All'
 )
 
-watch(
-  () => route.query.category,
-  (newCategory) => {
-    selectedCategory.value = categories.includes(newCategory)
-      ? newCategory
-      : 'All'
-  }
-)
+// PRODUCTS
+const products = ref([])
+const totalProducts = ref(0)
 
+const isLoading = ref(false)
+const apiError = ref('')
+
+// FILTERS
+const sortBy = ref('default')
+const searchQuery = ref('')
+
+// TOAST
+const showToast = ref(false)
+const toastMessage = ref('')
+let toastTimer = null
+
+// LOAD CATEGORIES FROM BACKEND
+async function fetchCategories() {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/storefront/categories`
+    )
+
+    if (!response.ok) {
+      throw new Error('Failed to load categories.')
+    }
+
+    const result = await response.json()
+
+    categoryItems.value = result.data || []
+
+    categories.value = [
+      'All',
+      ...categoryItems.value.map(category => category.name)
+    ]
+
+    // Keep URL category if it exists in backend
+    if (!categories.value.includes(selectedCategory.value)) {
+      selectedCategory.value = 'All'
+    }
+
+  } catch (error) {
+    console.error('Category API Error:', error)
+    categories.value = ['All']
+  }
+}
+
+// LOAD PRODUCTS FROM BACKEND
+async function fetchProducts() {
+  isLoading.value = true
+  apiError.value = ''
+
+  try {
+    const params = new URLSearchParams()
+
+    params.append('per_page', '100')
+
+    // Category Filter
+    if (selectedCategory.value !== 'All') {
+      const selected = categoryItems.value.find(
+        category => category.name === selectedCategory.value
+      )
+
+      if (selected) {
+        params.append('category_id', selected.id)
+      }
+    }
+
+    // Search
+    if (searchQuery.value.trim()) {
+      params.append('search', searchQuery.value.trim())
+    }
+
+    // Sorting
+    const sortMap = {
+      default: 'latest',
+      low: 'price_low',
+      high: 'price_high',
+      name: 'name'
+    }
+
+    params.append(
+      'sort',
+      sortMap[sortBy.value] || 'latest'
+    )
+
+    const response = await fetch(
+      `${API_BASE_URL}/storefront/products?${params.toString()}`
+    )
+
+    if (!response.ok) {
+      throw new Error('Unable to retrieve products from the server.')
+    }
+
+    const result = await response.json()
+
+    // Convert backend products to frontend cart/card format
+    products.value = (result.data || []).map(product => ({
+      id: product.id,
+      name: product.name,
+
+      category: product.category?.name || 'General',
+
+      price: Number(product.sale_price) || 0,
+
+      image: product.image_url
+      ? product.image_url.replace('http://localhost/', 'http://127.0.0.1:8000/')
+      : '',
+
+      is_available: product.is_available,
+
+      // Preserve the API response for future product details
+      backendData: product
+    }))
+
+    totalProducts.value = result.total || 0
+
+  } catch (error) {
+    console.error('Product API Error:', error)
+
+    apiError.value = error.message
+    products.value = []
+    totalProducts.value = 0
+
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// FILTERED PRODUCTS
+const filteredProducts = computed(() => products.value)
+
+// CATEGORY FILTER
 function selectCategory(category) {
   selectedCategory.value = category
 
@@ -190,125 +329,29 @@ function selectCategory(category) {
   })
 }
 
-const sortBy = ref('default')
-const searchQuery = ref('')
-const showToast = ref(false)
-const toastMessage = ref('')
-let toastTimer = null
+// URL CATEGORY SYNC
+watch(
+  () => route.query.category,
+  newCategory => {
+    const category =
+      typeof newCategory === 'string' &&
+      categories.value.includes(newCategory)
+        ? newCategory
+        : 'All'
 
-// PRODUCTS
-const products = ref([
-  {
-    id: 101,
-    name: 'Premium Silk Saree',
-    category: 'Saree',
-    price: 2850,
-    oldPrice: 3500,
-    discount: 19,
-    reviews: 28,
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 102,
-    name: 'Elegant Traditional Saree',
-    category: 'Saree',
-    price: 2250,
-    oldPrice: 2800,
-    discount: 20,
-    reviews: 19,
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e8?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 103,
-    name: 'Classic Embroidered Three Piece',
-    category: 'Three Piece',
-    price: 3200,
-    oldPrice: 3800,
-    discount: 16,
-    reviews: 35,
-    image: 'https://images.unsplash.com/photo-1597983073493-88cd35cf93a0?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 104,
-    name: 'Premium Cotton Panjabi',
-    category: 'Panjabi',
-    price: 1650,
-    oldPrice: 1950,
-    discount: 15,
-    reviews: 16,
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 105,
-    name: 'Traditional Cotton Lungi',
-    category: 'Lungi',
-    price: 750,
-    oldPrice: 900,
-    discount: 17,
-    reviews: 22,
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 106,
-    name: 'Premium Printed Fabric',
-    category: 'Fabric',
-    price: 450,
-    oldPrice: 550,
-    discount: 18,
-    reviews: 12,
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 107,
-    name: 'Designer Party Wear Saree',
-    category: 'Saree',
-    price: 3950,
-    oldPrice: 4500,
-    discount: 12,
-    reviews: 31,
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=700&q=85'
-  },
-  {
-    id: 108,
-    name: 'Modern Casual Three Piece',
-    category: 'Three Piece',
-    price: 2450,
-    oldPrice: 2900,
-    discount: 16,
-    reviews: 24,
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=700&q=85'
+    if (selectedCategory.value !== category) {
+      selectedCategory.value = category
+    }
   }
-])
+)
 
-// FILTERED PRODUCTS
-const filteredProducts = computed(() => {
-  let result = [...products.value]
-
-  if (selectedCategory.value !== 'All') {
-    result = result.filter(
-      product => product.category === selectedCategory.value
-    )
+// FETCH PRODUCTS WHEN FILTER CHANGES
+watch(
+  [selectedCategory, searchQuery, sortBy],
+  () => {
+    fetchProducts()
   }
-
-  if (searchQuery.value.trim()) {
-    const query = searchQuery.value.toLowerCase().trim()
-
-    result = result.filter(product =>
-      product.name.toLowerCase().includes(query) ||
-      product.category.toLowerCase().includes(query)
-    )
-  }
-
-  if (sortBy.value === 'low') {
-    result.sort((a, b) => a.price - b.price)
-  } else if (sortBy.value === 'high') {
-    result.sort((a, b) => b.price - a.price)
-  } else if (sortBy.value === 'name') {
-    result.sort((a, b) => a.name.localeCompare(b.name))
-  }
-
-  return result
-})
+)
 
 // ADD TO CART
 function addProduct(product) {
@@ -327,10 +370,14 @@ function addProduct(product) {
 // SEARCH
 function handleProductSearch(event) {
   searchQuery.value = event.detail || ''
+
   selectedCategory.value = 'All'
 
   if (route.query.category) {
-    router.replace({ path: '/shop', query: {} })
+    router.replace({
+      path: '/shop',
+      query: {}
+    })
   }
 }
 
@@ -340,16 +387,34 @@ function resetFilters() {
   searchQuery.value = ''
   sortBy.value = 'default'
 
-  router.replace({ path: '/shop', query: {} })
+  router.replace({
+    path: '/shop',
+    query: {}
+  })
+}
+
+// IMAGE ERROR
+function handleImageError(event) {
+  event.target.style.display = 'none'
 }
 
 // LIFECYCLE
-onMounted(() => {
-  window.addEventListener('product-search', handleProductSearch)
+onMounted(async () => {
+  await fetchCategories()
+  await fetchProducts()
+
+  window.addEventListener(
+    'product-search',
+    handleProductSearch
+  )
 })
 
 onUnmounted(() => {
-  window.removeEventListener('product-search', handleProductSearch)
+  window.removeEventListener(
+    'product-search',
+    handleProductSearch
+  )
+
   clearTimeout(toastTimer)
 })
 </script>
@@ -511,6 +576,29 @@ onUnmounted(() => {
   cursor: pointer;
 }
 
+/* LOADING */
+.loading-products {
+  text-align: center;
+  padding: 75px 15px;
+  color: #888;
+}
+
+.loading-spinner {
+  width: 38px;
+  height: 38px;
+  margin: 0 auto 15px;
+  border: 3px solid #eee;
+  border-top-color: #a27b45;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* PRODUCT GRID */
 .product-grid {
   display: grid;
@@ -546,17 +634,6 @@ onUnmounted(() => {
 
 .product-card:hover .product-image img {
   transform: scale(1.09);
-}
-
-.discount-badge {
-  position: absolute;
-  top: 13px;
-  left: 13px;
-  padding: 6px 10px;
-  background: #a33c32;
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
 }
 
 .quick-view {
@@ -604,6 +681,12 @@ onUnmounted(() => {
   transform: translateY(0);
 }
 
+.add-cart-btn:disabled {
+  background: #888;
+  cursor: not-allowed;
+}
+
+/* PRODUCT INFO */
 .product-info {
   padding: 16px 3px 0;
 }
@@ -630,17 +713,6 @@ onUnmounted(() => {
   color: #a27b45;
 }
 
-.product-rating {
-  color: #d6a34d;
-  font-size: 11px;
-  margin-bottom: 10px;
-}
-
-.product-rating span {
-  color: #999;
-  margin-left: 5px;
-}
-
 .product-price {
   display: flex;
   align-items: center;
@@ -650,11 +722,6 @@ onUnmounted(() => {
 .product-price strong {
   color: #29231f;
   font-size: 16px;
-}
-
-.product-price del {
-  color: #aaa;
-  font-size: 12px;
 }
 
 /* EMPTY */

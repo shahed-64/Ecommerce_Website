@@ -172,8 +172,12 @@
               </div>
             </div>
 
-            <button type="submit" class="place-order-btn">
-              Place Order
+            <button
+              type="submit"
+              class="place-order-btn"
+              :disabled="isSubmitting"
+            >
+              {{ isSubmitting ? 'Placing Order...' : 'Place Order' }}
               <i class="bi bi-arrow-right"></i>
             </button>
 
@@ -193,7 +197,7 @@
           <div class="summary-products">
             <div
               v-for="item in items"
-              :key="item.id"
+              :key="item.cartKey"
               class="summary-product"
             >
               <div class="product-image">
@@ -203,6 +207,21 @@
 
               <div class="product-info">
                 <h6>{{ item.name }}</h6>
+
+                <p v-if="item.selectedColor || item.selectedSize">
+                  <span v-if="item.selectedColor">
+                    Color: {{ item.selectedColor }}
+                  </span>
+
+                  <span v-if="item.selectedColor && item.selectedSize">
+                    |
+                  </span>
+
+                  <span v-if="item.selectedSize">
+                    Size: {{ item.selectedSize }}
+                  </span>
+                </p>
+
                 <p>৳{{ Number(item.price).toLocaleString() }}</p>
               </div>
 
@@ -249,16 +268,18 @@
         </aside>
       </div>
     </div>
+
     <FooterView />
   </div>
 </template>
 
 <script setup>
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import HeaderView from '../components/HeaderView.vue'
 import { useCart } from '../stores/cart'
 import FooterView from '../components/FooterView.vue'
+
 const router = useRouter()
 
 const {
@@ -267,6 +288,10 @@ const {
   cartTotal,
   clearCart
 } = useCart()
+
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
+
+const isSubmitting = ref(false)
 
 const customer = reactive({
   name: '',
@@ -311,40 +336,120 @@ const onlineMethods = [
   }
 ]
 
-function placeOrder() {
-  if (customer.payment === 'Online Payment' && !customer.onlineMethod) {
-    alert('Please select an online payment option.')
+async function placeOrder() {
+  if (isSubmitting.value) return
+
+  if (customer.payment === 'Online Payment') {
+    if (!customer.onlineMethod) {
+      alert('Please select an online payment option.')
+      return
+    }
+
+    alert(
+      'Online payment is not available yet. Please select Cash on Delivery.'
+    )
     return
   }
 
-  const orderId = 'BK-' + Date.now().toString().slice(-8)
-
-  const order = {
-    order_id: orderId,
-    customer: { ...customer },
-    products: items.value.map(item => ({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity
-    })),
-    subtotal: cartTotal.value,
-    payment_method: customer.payment,
-    online_payment_method:
-      customer.payment === 'Online Payment'
-        ? customer.onlineMethod
-        : null,
-    created_at: new Date().toISOString()
+  if (!items.value.length) {
+    alert('Your cart is empty.')
+    return
   }
 
-  sessionStorage.setItem(
-    'bastro_kutir_last_order',
-    JSON.stringify(order)
-  )
+  isSubmitting.value = true
 
-  clearCart()
+  try {
+    const payload = {
+      customer_name: customer.name,
+      phone: customer.phone,
+      email: customer.email || null,
+      shipping_address: customer.address,
+      notes: customer.notes || null,
 
-  router.push('/order-success')
+      items: items.value.map(item => ({
+        product_id: item.id,
+        variant_id: item.variant_id || null,
+        quantity: item.quantity
+      }))
+    }
+
+    const response = await fetch(`${API_BASE_URL}/orders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      const errors = result.errors
+        ? Object.values(result.errors).flat().join('\n')
+        : result.message || 'Order could not be placed.'
+
+      throw new Error(errors)
+    }
+
+    const backendOrder = result.data
+
+    const order = {
+      order_id: backendOrder.order_number,
+      backend_order_id: backendOrder.id,
+
+      customer: {
+        name: backendOrder.customer_name,
+        phone: backendOrder.phone,
+        email: backendOrder.email,
+        address: backendOrder.shipping_address,
+        notes: backendOrder.notes,
+        payment: 'Cash on Delivery',
+        onlineMethod: ''
+      },
+
+      products: backendOrder.items.map(item => ({
+        id: item.product_id,
+        variant_id: item.variant_id,
+        name: item.product_name,
+        sku: item.sku,
+        variant_name: item.variant_name,
+        price: Number(item.unit_price),
+        quantity: Number(item.quantity)
+      })),
+
+      subtotal: Number(backendOrder.subtotal),
+      shipping_charge: Number(backendOrder.shipping_charge),
+      total: Number(backendOrder.total_amount),
+
+      payment_method: 'Cash on Delivery',
+      online_payment_method: null,
+
+      payment_status: backendOrder.payment_status,
+      order_status: backendOrder.order_status,
+
+      created_at: backendOrder.created_at
+    }
+
+    sessionStorage.setItem(
+      'bastro_kutir_last_order',
+      JSON.stringify(order)
+    )
+
+    clearCart()
+
+    router.push('/order-success')
+
+  } catch (error) {
+    console.error('Order Error:', error)
+
+    alert(
+      error.message || 'Something went wrong. Please try again.'
+    )
+
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>
 
@@ -718,8 +823,13 @@ function placeOrder() {
   transition: 0.2s;
 }
 
-.place-order-btn:hover {
+.place-order-btn:hover:not(:disabled) {
   background: #96713b;
+}
+
+.place-order-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .place-order-btn i {
@@ -811,7 +921,7 @@ function placeOrder() {
 .product-info p {
   font-size: 12px;
   color: #999;
-  margin: 0;
+  margin: 0 0 4px;
 }
 
 .summary-product > strong {

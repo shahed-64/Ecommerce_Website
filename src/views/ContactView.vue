@@ -138,6 +138,7 @@
                   v-model.trim="form.name"
                   type="text"
                   placeholder="Enter your full name"
+                  maxlength="255"
                   required
                 />
               </div>
@@ -149,6 +150,7 @@
                   v-model.trim="form.email"
                   type="email"
                   placeholder="your@email.com"
+                  maxlength="255"
                   required
                 />
               </div>
@@ -162,6 +164,7 @@
                   v-model.trim="form.phone"
                   type="tel"
                   placeholder="+880 1XXXXXXXXX"
+                  maxlength="30"
                 />
               </div>
 
@@ -189,6 +192,7 @@
                 id="message"
                 v-model.trim="form.message"
                 rows="5"
+                maxlength="5000"
                 placeholder="Tell us how we can help you..."
                 required
               ></textarea>
@@ -211,6 +215,11 @@
             <div v-if="successMessage" class="form-success">
               <i class="bi bi-check-circle-fill"></i>
               {{ successMessage }}
+            </div>
+
+            <div v-if="errorMessage" class="form-error">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              {{ errorMessage }}
             </div>
           </form>
         </div>
@@ -291,6 +300,8 @@ const {
   cartTotal
 } = useCart()
 
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
+
 const form = reactive({
   name: '',
   email: '',
@@ -301,17 +312,51 @@ const form = reactive({
 
 const submitting = ref(false)
 const successMessage = ref('')
+const errorMessage = ref('')
 
-function submitForm() {
+async function submitForm() {
   if (submitting.value) return
 
   submitting.value = true
   successMessage.value = ''
+  errorMessage.value = ''
 
-  // Frontend demo only. No message is sent to a server.
-  setTimeout(() => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/contact-messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        name: form.name,
+        email: form.email,
+        phone: form.phone || null,
+        subject: form.subject,
+        message: form.message
+      })
+    })
+
+    const data = await response.json()
+
+    if (!response.ok) {
+      if (response.status === 422 && data.errors) {
+        const firstError = Object.values(data.errors)[0]
+
+        throw new Error(
+          Array.isArray(firstError)
+            ? firstError[0]
+            : 'Please check your information.'
+        )
+      }
+
+      throw new Error(
+        data.message || 'Something went wrong. Please try again.'
+      )
+    }
+
     successMessage.value =
-      'Thank you! Your message has been prepared successfully. Please contact us by email for a real inquiry.'
+      data.message || 'Thank you! Your message has been sent successfully.'
 
     form.name = ''
     form.email = ''
@@ -319,8 +364,14 @@ function submitForm() {
     form.subject = ''
     form.message = ''
 
+  } catch (error) {
+    console.error('Contact form error:', error)
+
+    errorMessage.value =
+      error.message || 'Unable to send your message. Please try again.'
+  } finally {
     submitting.value = false
-  }, 700)
+  }
 }
 </script>
 
@@ -726,6 +777,19 @@ function submitForm() {
 }
 
 .form-success i {
+  margin-right: 7px;
+}
+
+.form-error {
+  margin-top: 18px;
+  padding: 14px;
+  background: #fbeaea;
+  color: #b42318;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.form-error i {
   margin-right: 7px;
 }
 

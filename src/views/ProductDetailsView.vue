@@ -19,272 +19,395 @@
 
     <!-- PRODUCT DETAILS -->
     <main class="details-container">
-      <section class="product-main">
 
-        <!-- IMAGE GALLERY -->
-        <div class="gallery-section">
-          <div class="thumbnail-list">
-            <button
-              v-for="(image, index) in product.images"
-              :key="index"
-              :class="{ active: activeImage === index }"
-              @click="activeImage = index"
-            >
-              <img :src="image" :alt="product.name" />
-            </button>
-          </div>
+      <div v-if="loading" class="product-loading">
+        Loading product details...
+      </div>
 
-          <div
-            class="main-image"
-            @mousemove="zoomImage"
-            @mouseleave="resetZoom"
-          >
-            <span v-if="product.discount" class="image-discount">
-              -{{ product.discount }}% OFF
-            </span>
+      <div v-else-if="error" class="product-error">
+        {{ error }}
+        <RouterLink to="/shop">Back to Shop</RouterLink>
+      </div>
 
-            <button class="image-expand" @click="showImageModal = true">
-              <i class="bi bi-arrows-fullscreen"></i>
-            </button>
+      <template v-else>
 
-            <img
-              :src="product.images[activeImage]"
-              :alt="product.name"
-              :style="zoomStyle"
-            />
-          </div>
-        </div>
+        <section class="product-main">
 
-        <!-- PRODUCT INFORMATION -->
-        <div class="product-information">
-          <div class="product-brand">BASTRO KUTIR EXCLUSIVE</div>
-
-          <h1>{{ product.name }}</h1>
-
-          <div class="rating-row">
-            <div class="stars">
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-fill"></i>
-              <i class="bi bi-star-half"></i>
-            </div>
-            <span>4.8</span>
-            <span class="rating-divider">|</span>
-            <span>{{ product.reviews }} Customer Reviews</span>
-          </div>
-
-          <div class="price-row">
-            <strong>৳{{ product.price.toLocaleString() }}</strong>
-            <del v-if="product.oldPrice">
-              ৳{{ product.oldPrice.toLocaleString() }}
-            </del>
-            <span v-if="product.discount" class="save-badge">
-              Save {{ product.discount }}%
-            </span>
-          </div>
-
-          <p class="product-description">
-            {{ product.description }}
-          </p>
-
-          <div class="stock-status">
-            <i class="bi bi-check-circle-fill"></i>
-            In Stock - Ready to Ship
-          </div>
-
-          <div class="option-group">
-            <div class="option-heading">
-              Select Color
-              <span>{{ selectedColor }}</span>
-            </div>
-
-            <div class="color-options">
+          <!-- IMAGE GALLERY -->
+          <div class="gallery-section">
+            <div class="thumbnail-list">
               <button
-                v-for="color in colors"
-                :key="color.name"
-                :title="color.name"
-                :class="{ selected: selectedColor === color.name }"
-                :style="{ background: color.value }"
-                @click="selectedColor = color.name"
-              ></button>
-            </div>
-          </div>
-
-          <div class="option-group">
-            <div class="option-heading">
-              Select Size
-              <span>{{ selectedSize || 'Choose a size' }}</span>
-            </div>
-
-            <div class="size-options">
-              <button
-                v-for="size in sizes"
-                :key="size"
-                :class="{ selected: selectedSize === size }"
-                @click="selectedSize = size"
+                v-for="(image, index) in product.images"
+                :key="index"
+                :class="{ active: activeImage === index }"
+                @click="activeImage = index"
               >
-                {{ size }}
+                <img :src="image" :alt="product.name" />
               </button>
+            </div>
+
+            <div
+              class="main-image"
+              @mousemove="zoomImage"
+              @mouseleave="resetZoom"
+            >
+              <button
+                class="image-expand"
+                @click="showImageModal = true"
+              >
+                <i class="bi bi-arrows-fullscreen"></i>
+              </button>
+
+              <img
+                :src="product.images[activeImage]"
+                :alt="product.name"
+                :style="zoomStyle"
+              />
             </div>
           </div>
 
-          <div class="purchase-row">
-            <div class="quantity-control">
-              <button @click="quantity = Math.max(1, quantity - 1)">
-                <i class="bi bi-dash"></i>
-              </button>
-              <span>{{ quantity }}</span>
-              <button @click="quantity++">
-                <i class="bi bi-plus"></i>
+          <!-- PRODUCT INFORMATION -->
+          <div class="product-information">
+
+            <div class="product-brand">
+              {{ product.brand || 'BASTRO KUTIR' }}
+            </div>
+
+            <h1>{{ product.name }}</h1>
+
+            <div class="price-row">
+              <strong>
+                ৳{{ displayPrice.toLocaleString('en-BD') }}
+              </strong>
+            </div>
+
+            <p class="product-description">
+              {{ product.description || 'No description available.' }}
+            </p>
+
+            <div
+              class="stock-status"
+              :class="{ 'out-of-stock': !isAvailable }"
+            >
+              <i
+                :class="isAvailable
+                  ? 'bi bi-check-circle-fill'
+                  : 'bi bi-x-circle-fill'"
+              ></i>
+
+              {{ isAvailable ? 'In Stock - Ready to Ship' : 'Out of Stock' }}
+            </div>
+
+            <!-- COLOR OPTIONS -->
+            <div
+              v-if="colors.length"
+              class="option-group"
+            >
+              <div class="option-heading">
+                Select Color
+                <span>{{ selectedColor || 'Choose a color' }}</span>
+              </div>
+
+              <div class="color-options">
+                <button
+                  v-for="color in colors"
+                  :key="color.name"
+                  :title="color.name"
+                  :class="{ selected: selectedColor === color.name }"
+                  :style="{ background: color.value }"
+                  @click="selectColor(color.name)"
+                ></button>
+              </div>
+            </div>
+
+            <!-- SIZE OPTIONS -->
+            <div
+              v-if="sizes.length"
+              class="option-group"
+            >
+              <div class="option-heading">
+                Select Size
+                <span>{{ selectedSize || 'Choose a size' }}</span>
+              </div>
+
+              <div class="size-options">
+                <button
+                  v-for="size in sizes"
+                  :key="size"
+                  :class="{ selected: selectedSize === size }"
+                  :disabled="!isSizeAvailable(size)"
+                  @click="selectSize(size)"
+                >
+                  {{ size }}
+                </button>
+              </div>
+            </div>
+
+            <div
+              v-if="variants.length && !selectedVariant"
+              class="variant-warning"
+            >
+              Please select an available product option.
+            </div>
+
+            <!-- QUANTITY AND CART -->
+            <div class="purchase-row">
+
+              <div class="quantity-control">
+                <button
+                  @click="quantity = Math.max(1, quantity - 1)"
+                  :disabled="!isAvailable"
+                >
+                  <i class="bi bi-dash"></i>
+                </button>
+
+                <span>{{ quantity }}</span>
+
+                <button
+                  @click="quantity++"
+                  :disabled="!isAvailable"
+                >
+                  <i class="bi bi-plus"></i>
+                </button>
+              </div>
+
+              <button
+                class="add-to-cart"
+                @click="handleAddToCart"
+                :disabled="!canPurchase"
+              >
+                <i class="bi bi-bag-plus"></i>
+                Add to Cart
               </button>
             </div>
 
-            <button class="add-to-cart" @click="handleAddToCart">
-              <i class="bi bi-bag-plus"></i>
-              Add to Cart
+            <button
+              class="buy-now"
+              @click="handleBuyNow"
+              :disabled="!canPurchase"
+            >
+              Buy Now
+              <i class="bi bi-arrow-right"></i>
+            </button>
+
+            <div class="product-assurances">
+              <div>
+                <i class="bi bi-truck"></i>
+                <span>Fast Delivery</span>
+              </div>
+
+              <div>
+                <i class="bi bi-shield-check"></i>
+                <span>Secure Shopping</span>
+              </div>
+
+              <div>
+                <i class="bi bi-arrow-repeat"></i>
+                <span>Easy Returns</span>
+              </div>
+            </div>
+
+            <div class="product-meta">
+              <p>
+                <span>SKU:</span>
+                {{ selectedVariant?.sku || product.sku || product.id }}
+              </p>
+
+              <p>
+                <span>Category:</span>
+                {{ product.category }}
+              </p>
+
+              <p>
+                <span>Brand:</span>
+                {{ product.brand || 'N/A' }}
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- PRODUCT INFORMATION TABS -->
+        <section class="details-tabs">
+
+          <div class="tab-buttons">
+            <button
+              :class="{ active: activeTab === 'description' }"
+              @click="activeTab = 'description'"
+            >
+              Description
+            </button>
+
+            <button
+              :class="{ active: activeTab === 'details' }"
+              @click="activeTab = 'details'"
+            >
+              Product Details
+            </button>
+
+            <button
+              :class="{ active: activeTab === 'shipping' }"
+              @click="activeTab = 'shipping'"
+            >
+              Shipping & Returns
             </button>
           </div>
 
-          <button class="buy-now" @click="handleBuyNow">
-            Buy Now
-            <i class="bi bi-arrow-right"></i>
-          </button>
+          <div class="tab-content">
 
-          <div class="product-assurances">
+            <div v-if="activeTab === 'description'">
+              <h3>Made for Your Style</h3>
+
+              <p>{{ product.description || 'No description available.' }}</p>
+
+              <p>
+                Discover timeless fashion with Bastro Kutir. We bring you
+                carefully selected collections that combine traditional
+                elegance with modern style.
+              </p>
+            </div>
+
+            <div v-if="activeTab === 'details'">
+              <h3>Product Specifications</h3>
+
+              <div class="specification-row">
+                <span>Product Name</span>
+                <strong>{{ product.name }}</strong>
+              </div>
+
+              <div class="specification-row">
+                <span>Category</span>
+                <strong>{{ product.category }}</strong>
+              </div>
+
+              <div class="specification-row">
+                <span>Brand</span>
+                <strong>{{ product.brand || 'N/A' }}</strong>
+              </div>
+
+              <div
+                v-if="product.material"
+                class="specification-row"
+              >
+                <span>Material</span>
+                <strong>{{ product.material }}</strong>
+              </div>
+
+              <div
+                v-if="product.fabric_type"
+                class="specification-row"
+              >
+                <span>Fabric Type</span>
+                <strong>{{ product.fabric_type }}</strong>
+              </div>
+
+              <div
+                v-if="product.width"
+                class="specification-row"
+              >
+                <span>Width</span>
+                <strong>{{ product.width }}</strong>
+              </div>
+
+              <div
+                v-if="product.gsm"
+                class="specification-row"
+              >
+                <span>GSM</span>
+                <strong>{{ product.gsm }}</strong>
+              </div>
+
+              <div class="specification-row">
+                <span>Availability</span>
+                <strong>
+                  {{ isAvailable ? 'In Stock' : 'Out of Stock' }}
+                </strong>
+              </div>
+            </div>
+
+            <div v-if="activeTab === 'shipping'">
+              <h3>Delivery Information</h3>
+
+              <p>
+                We aim to deliver your order safely and conveniently.
+              </p>
+
+              <p>
+                Cash on Delivery is available according to delivery location.
+              </p>
+
+              <p>
+                Please contact our customer support for return and exchange assistance.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- RELATED PRODUCTS -->
+        <section class="related-section">
+
+          <div class="related-heading">
             <div>
-              <i class="bi bi-truck"></i>
-              <span>Fast Delivery</span>
+              <span class="section-eyebrow">YOU MAY ALSO LIKE</span>
+              <h2>Related Products</h2>
             </div>
-            <div>
-              <i class="bi bi-shield-check"></i>
-              <span>Secure Shopping</span>
-            </div>
-            <div>
-              <i class="bi bi-arrow-repeat"></i>
-              <span>Easy Returns</span>
-            </div>
-          </div>
 
-          <div class="product-meta">
-            <p><span>SKU:</span> BK-{{ product.id }}</p>
-            <p><span>Category:</span> {{ product.category }}</p>
-            <p><span>Brand:</span> Bastro Kutir</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- PRODUCT INFORMATION TABS -->
-      <section class="details-tabs">
-        <div class="tab-buttons">
-          <button
-            :class="{ active: activeTab === 'description' }"
-            @click="activeTab = 'description'"
-          >
-            Description
-          </button>
-
-          <button
-            :class="{ active: activeTab === 'details' }"
-            @click="activeTab = 'details'"
-          >
-            Product Details
-          </button>
-
-          <button
-            :class="{ active: activeTab === 'shipping' }"
-            @click="activeTab = 'shipping'"
-          >
-            Shipping & Returns
-          </button>
-        </div>
-
-        <div class="tab-content">
-          <div v-if="activeTab === 'description'">
-            <h3>Made for Your Style</h3>
-            <p>{{ product.description }}</p>
-            <p>
-              Discover timeless fashion with Bastro Kutir. We bring you
-              carefully selected collections that combine traditional
-              elegance with modern style.
-            </p>
-          </div>
-
-          <div v-if="activeTab === 'details'">
-            <h3>Product Specifications</h3>
-            <div class="specification-row">
-              <span>Product Name</span>
-              <strong>{{ product.name }}</strong>
-            </div>
-            <div class="specification-row">
-              <span>Category</span>
-              <strong>{{ product.category }}</strong>
-            </div>
-            <div class="specification-row">
-              <span>Brand</span>
-              <strong>Bastro Kutir</strong>
-            </div>
-            <div class="specification-row">
-              <span>Availability</span>
-              <strong>In Stock</strong>
-            </div>
-          </div>
-
-          <div v-if="activeTab === 'shipping'">
-            <h3>Delivery Information</h3>
-            <p>We aim to deliver your order safely and conveniently.</p>
-            <p>Cash on Delivery is available according to delivery location.</p>
-            <p>Please contact our customer support for return and exchange assistance.</p>
-          </div>
-        </div>
-      </section>
-
-      <!-- RELATED PRODUCTS -->
-      <section class="related-section">
-        <div class="related-heading">
-          <div>
-            <span class="section-eyebrow">YOU MAY ALSO LIKE</span>
-            <h2>Related Products</h2>
-          </div>
-          <RouterLink to="/shop">
-            View All Products <i class="bi bi-arrow-right"></i>
-          </RouterLink>
-        </div>
-
-        <div class="related-grid">
-          <article
-            v-for="item in relatedProducts"
-            :key="item.id"
-            class="related-card"
-          >
-            <RouterLink :to="`/product/${item.id}`" class="related-image">
-              <img :src="item.image" :alt="item.name" />
-              <span v-if="item.discount">-{{ item.discount }}%</span>
+            <RouterLink to="/shop">
+              View All Products <i class="bi bi-arrow-right"></i>
             </RouterLink>
+          </div>
 
-            <div class="related-info">
-              <small>{{ item.category }}</small>
-              <RouterLink :to="`/product/${item.id}`">
-                {{ item.name }}
+          <div class="related-grid">
+            <article
+              v-for="item in relatedProducts"
+              :key="item.id"
+              class="related-card"
+            >
+              <RouterLink
+                :to="`/product/${item.id}`"
+                class="related-image"
+              >
+                <img :src="item.image" :alt="item.name" />
               </RouterLink>
-              <strong>৳{{ item.price.toLocaleString() }}</strong>
-            </div>
-          </article>
-        </div>
-      </section>
+
+              <div class="related-info">
+                <small>{{ item.category }}</small>
+
+                <RouterLink :to="`/product/${item.id}`">
+                  {{ item.name }}
+                </RouterLink>
+
+                <strong>
+                  ৳{{ item.price.toLocaleString('en-BD') }}
+                </strong>
+              </div>
+            </article>
+          </div>
+
+        </section>
+
+      </template>
     </main>
 
     <!-- IMAGE MODAL -->
     <Transition name="modal">
       <div
-        v-if="showImageModal"
+        v-if="showImageModal && product.images.length"
         class="image-modal"
         @click.self="showImageModal = false"
       >
-        <button class="modal-close" @click="showImageModal = false">
+        <button
+          class="modal-close"
+          @click="showImageModal = false"
+        >
           <i class="bi bi-x-lg"></i>
         </button>
-        <img :src="product.images[activeImage]" :alt="product.name" />
+
+        <img
+          :src="product.images[activeImage]"
+          :alt="product.name"
+        />
       </div>
     </Transition>
 
@@ -312,187 +435,297 @@ const router = useRouter()
 
 const { cartCount, cartTotal, addToCart } = useCart()
 
-const products = [
-  {
-    id: 101,
-    name: 'Premium Silk Saree',
-    category: 'Saree',
-    price: 2850,
-    oldPrice: 3500,
-    discount: 19,
-    reviews: 28,
-    description: 'An elegant silk saree designed to make every occasion special. Its beautiful traditional look adds a timeless touch to your wardrobe.',
-    image: 'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=85',
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=85',
-      'https://images.unsplash.com/photo-1583391733956-6c78276477e8?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 102,
-    name: 'Elegant Traditional Saree',
-    category: 'Saree',
-    price: 2250,
-    oldPrice: 2800,
-    discount: 20,
-    reviews: 19,
-    description: 'A graceful traditional saree for celebrations, family gatherings and special occasions.',
-    image: 'https://images.unsplash.com/photo-1583391733956-6c78276477e8?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1583391733956-6c78276477e8?auto=format&fit=crop&w=900&q=85',
-      'https://images.unsplash.com/photo-1610030469983-98e550d6193c?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 103,
-    name: 'Classic Embroidered Three Piece',
-    category: 'Three Piece',
-    price: 3200,
-    oldPrice: 3800,
-    discount: 16,
-    reviews: 35,
-    description: 'A beautiful embroidered three piece collection with an elegant design for your everyday and festive wardrobe.',
-    image: 'https://images.unsplash.com/photo-1597983073493-88cd35cf93a0?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1597983073493-88cd35cf93a0?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 104,
-    name: 'Premium Cotton Panjabi',
-    category: 'Panjabi',
-    price: 1650,
-    oldPrice: 1950,
-    discount: 15,
-    reviews: 16,
-    description: 'A comfortable cotton panjabi with a smart traditional look. Perfect for everyday wear and special occasions.',
-    image: 'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1617137968427-85924c800a22?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 105,
-    name: 'Traditional Cotton Lungi',
-    category: 'Lungi',
-    price: 750,
-    oldPrice: 900,
-    discount: 17,
-    reviews: 22,
-    description: 'A comfortable traditional cotton lungi for everyday use.',
-    image: 'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1618354691373-d851c5c3a990?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 106,
-    name: 'Premium Printed Fabric',
-    category: 'Fabric',
-    price: 450,
-    oldPrice: 550,
-    discount: 18,
-    reviews: 12,
-    description: 'Beautiful printed fabric for creating your own unique style.',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 107,
-    name: 'Designer Party Wear Saree',
-    category: 'Saree',
-    price: 3950,
-    oldPrice: 4500,
-    discount: 12,
-    reviews: 31,
-    description: 'A stunning designer saree for parties, celebrations and memorable occasions.',
-    image: 'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1617627143750-d86bc21e42bb?auto=format&fit=crop&w=900&q=85'
-    ]
-  },
-  {
-    id: 108,
-    name: 'Modern Casual Three Piece',
-    category: 'Three Piece',
-    price: 2450,
-    oldPrice: 2900,
-    discount: 16,
-    reviews: 24,
-    description: 'A modern casual three piece collection designed for comfort and everyday elegance.',
-    image: 'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=85',
-    images: [
-      'https://images.unsplash.com/photo-1584917865442-de89df76afd3?auto=format&fit=crop&w=900&q=85'
-    ]
-  }
-]
+// Local Laravel API
+const API_BASE_URL = 'http://127.0.0.1:8000/api'
 
-// Home page product IDs 1-8 map to the same demo products 101-108.
-const productId = computed(() => {
-  const id = Number(route.params.id)
-  return id >= 1 && id <= 8 ? id + 100 : id
+// Product state
+const product = ref({
+  id: null,
+  name: '',
+  category: '',
+  brand: '',
+  description: '',
+  price: 0,
+  images: [],
+  variants: []
 })
 
-const product = computed(() => {
-  return products.find(item => item.id === productId.value) || products[0]
-})
+const relatedProducts = ref([])
+const loading = ref(true)
+const error = ref('')
 
-const relatedProducts = computed(() => {
-  return products
-    .filter(item => item.id !== product.value.id)
-    .filter(item => item.category === product.value.category)
-    .slice(0, 4)
-    .concat(
-      products
-        .filter(item =>
-          item.id !== product.value.id &&
-          item.category !== product.value.category
-        )
-        .slice(0, Math.max(0, 4 - products.filter(item =>
-          item.id !== product.value.id &&
-          item.category === product.value.category
-        ).length))
-    )
-    .slice(0, 4)
-})
-
+// Selection state
 const activeImage = ref(0)
-const selectedColor = ref('Maroon')
-const selectedSize = ref('M')
+const selectedColor = ref('')
+const selectedSize = ref('')
 const quantity = ref(1)
+
 const activeTab = ref('description')
 const showImageModal = ref(false)
 const showToast = ref(false)
 const toastMessage = ref('')
 const zoomStyle = ref({})
 
-const colors = [
-  { name: 'Maroon', value: '#7b1f32' },
-  { name: 'Black', value: '#242424' },
-  { name: 'Blue', value: '#344d78' },
-  { name: 'Green', value: '#456b4c' },
-  { name: 'Pink', value: '#d58e9f' }
-]
+// Available variants
+const variants = computed(() => {
+  return (product.value.variants || []).filter(
+    variant => variant.is_available
+  )
+})
 
-const sizes = ['S', 'M', 'L', 'XL', 'XXL']
+// Available colors
+const colors = computed(() => {
+  const uniqueColors = [
+    ...new Set(
+      variants.value
+        .map(variant => variant.color)
+        .filter(Boolean)
+    )
+  ]
 
+  const colorMap = {
+    black: '#242424',
+    white: '#ffffff',
+    red: '#e53935',
+    blue: '#344d78',
+    navy: '#172b4d',
+    green: '#456b4c',
+    maroon: '#7b1f32',
+    pink: '#d58e9f',
+    yellow: '#fbc02d',
+    purple: '#7e57c2',
+    brown: '#795548',
+    grey: '#9e9e9e',
+    gray: '#9e9e9e',
+    orange: '#fb8c00'
+  }
+
+  return uniqueColors.map(name => ({
+    name,
+    value: colorMap[name.toLowerCase()] || name
+  }))
+})
+
+// Available sizes
+const sizes = computed(() => {
+  return [
+    ...new Set(
+      variants.value
+        .map(variant => variant.size)
+        .filter(Boolean)
+    )
+  ]
+})
+
+// Selected variant
+const selectedVariant = computed(() => {
+  if (!variants.value.length) return null
+
+  return variants.value.find(variant => {
+    const colorMatches = selectedColor.value
+      ? variant.color === selectedColor.value
+      : true
+
+    const sizeMatches = selectedSize.value
+      ? variant.size === selectedSize.value
+      : true
+
+    return colorMatches && sizeMatches
+  }) || null
+})
+
+// Effective price
+const displayPrice = computed(() => {
+  if (selectedVariant.value) {
+    return Number(selectedVariant.value.sale_price) || 0
+  }
+
+  return Number(product.value.price) || 0
+})
+
+// Availability
+const isAvailable = computed(() => {
+  if (!product.value.is_available) return false
+
+  if (!variants.value.length) {
+    return true
+  }
+
+  return Boolean(selectedVariant.value)
+})
+
+const canPurchase = computed(() => {
+  return isAvailable.value && quantity.value > 0
+})
+
+// Check if a size is available with the selected color
+function isSizeAvailable(size) {
+  return variants.value.some(variant => {
+    const sizeMatches = variant.size === size
+
+    const colorMatches = selectedColor.value
+      ? variant.color === selectedColor.value
+      : true
+
+    return sizeMatches && colorMatches
+  })
+}
+
+// Select color
+function selectColor(color) {
+  selectedColor.value = color
+
+  const matchingVariants = variants.value.filter(
+    variant => variant.color === color
+  )
+
+  if (
+    selectedSize.value &&
+    !matchingVariants.some(
+      variant => variant.size === selectedSize.value
+    )
+  ) {
+    selectedSize.value = matchingVariants[0]?.size || ''
+  }
+}
+
+// Select size
+function selectSize(size) {
+  if (isSizeAvailable(size)) {
+    selectedSize.value = size
+  }
+}
+
+// Normalize image URL
+function normalizeImageUrl(url) {
+  if (!url) return ''
+
+  return url.replace(
+    /^http:\/\/localhost\//,
+    'http://127.0.0.1:8000/'
+  )
+}
+
+// Map backend product data
+function formatProduct(data) {
+  const image = normalizeImageUrl(data.image_url)
+
+  return {
+    id: data.id,
+    name: data.name,
+    sku: data.sku || '',
+    category: data.category?.name || 'General',
+    brand: data.brand?.name || '',
+    description: data.description || '',
+    price: Number(data.sale_price) || 0,
+    image,
+    images: image ? [image] : [],
+    is_available: Boolean(data.is_available),
+    material: data.material || '',
+    fabric_type: data.fabric_type || '',
+    width: data.width || '',
+    gsm: data.gsm || '',
+    variants: data.variants || []
+  }
+}
+
+// Load product details
+async function fetchProduct() {
+  loading.value = true
+  error.value = ''
+
+  try {
+    const id = Number(route.params.id)
+
+    if (!id || id <= 0) {
+      throw new Error('Invalid product ID.')
+    }
+
+    const response = await fetch(
+      `${API_BASE_URL}/storefront/products/${id}`
+    )
+
+    if (!response.ok) {
+      throw new Error(
+        response.status === 404
+          ? 'Product not found.'
+          : 'Unable to load product details.'
+      )
+    }
+
+    const result = await response.json()
+
+    // Supports both direct product and data-wrapped response
+    const data = result.data || result
+
+    product.value = formatProduct(data)
+
+    if (!product.value.id) {
+      throw new Error('Product data is invalid.')
+    }
+
+    // Initialize variant selection
+    const availableVariants = variants.value
+
+    selectedColor.value = availableVariants[0]?.color || ''
+    selectedSize.value = availableVariants[0]?.size || ''
+
+    activeImage.value = 0
+    quantity.value = 1
+    activeTab.value = 'description'
+    showImageModal.value = false
+
+    await fetchRelatedProducts()
+  } catch (err) {
+    console.error('Product Details Error:', err)
+    error.value = err.message || 'Something went wrong.'
+  } finally {
+    loading.value = false
+  }
+}
+
+// Load related products
+async function fetchRelatedProducts() {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/storefront/products?per_page=100`
+    )
+
+    if (!response.ok) return
+
+    const result = await response.json()
+
+    const productList = result.data?.data || result.data || []
+
+    relatedProducts.value = productList
+      .filter(item => Number(item.id) !== Number(product.value.id))
+      .slice(0, 4)
+      .map(item => ({
+        id: item.id,
+        name: item.name,
+        category: item.category?.name || 'General',
+        price: Number(item.sale_price) || 0,
+        image: normalizeImageUrl(item.image_url)
+      }))
+  } catch (err) {
+    console.error('Related Products Error:', err)
+    relatedProducts.value = []
+  }
+}
+
+// Route change
 watch(
   () => route.params.id,
   () => {
-    activeImage.value = 0
-    quantity.value = 1
-    selectedColor.value = 'Maroon'
-    selectedSize.value = 'M'
-    activeTab.value = 'description'
-    showImageModal.value = false
-  }
+    fetchProduct()
+  },
+  { immediate: true }
 )
 
+// Image zoom
 function zoomImage(event) {
   const rect = event.currentTarget.getBoundingClientRect()
+
   const x = ((event.clientX - rect.left) / rect.width) * 100
   const y = ((event.clientY - rect.top) / rect.height) * 100
 
@@ -509,22 +742,38 @@ function resetZoom() {
   }
 }
 
+// Toast notification
+let toastTimer
+
 function notify(message) {
   toastMessage.value = message
   showToast.value = true
 
-  setTimeout(() => {
+  clearTimeout(toastTimer)
+
+  toastTimer = setTimeout(() => {
     showToast.value = false
   }, 2500)
 }
 
+// Add to cart
 function handleAddToCart() {
+  if (!canPurchase.value) {
+    notify('Please select an available product option.')
+    return
+  }
+
   addToCart(
     {
-      ...product.value,
-      id: Number(route.params.id),
-      selectedColor: selectedColor.value,
-      selectedSize: selectedSize.value
+      id: product.value.id,
+      variant_id: selectedVariant.value?.id || null,
+      name: product.value.name,
+      category: product.value.category,
+      image: product.value.images[0] || '',
+      price: displayPrice.value,
+      selectedColor: selectedVariant.value?.color || '',
+      selectedSize: selectedVariant.value?.size || '',
+      sku: selectedVariant.value?.sku || product.value.sku || ''
     },
     quantity.value
   )
@@ -532,7 +781,13 @@ function handleAddToCart() {
   notify(`${product.value.name} added to cart!`)
 }
 
+// Buy Now
 function handleBuyNow() {
+  if (!canPurchase.value) {
+    notify('Please select an available product option.')
+    return
+  }
+
   handleAddToCart()
   router.push('/checkout')
 }
