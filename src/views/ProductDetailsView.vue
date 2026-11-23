@@ -436,7 +436,7 @@ const router = useRouter()
 const { cartCount, cartTotal, addToCart } = useCart()
 
 // Local Laravel API
-const API_BASE_URL = 'http://127.0.0.1:8000/api'
+const API_BASE_URL = 'https://shop.shahedislam.xyz/api'
 
 // Product state
 const product = ref({
@@ -602,7 +602,7 @@ function normalizeImageUrl(url) {
 
   return url.replace(
     /^http:\/\/localhost\//,
-    'http://127.0.0.1:8000/'
+    'https://shop.shahedislam.xyz/api'
   )
 }
 
