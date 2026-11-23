@@ -293,7 +293,7 @@ async function fetchProducts() {
       price: Number(product.sale_price) || 0,
 
       image: product.image_url
-      ? product.image_url.replace('http://localhost/', 'http://127.0.0.1:8000/', 'https://shop.shahedislam.xyz/api')
+      ? product.image_url.replace('http://localhost/', 'http://127.0.0.1:8000/', 'https://shop.shahedislam.xyz/', 'https://shop.shahedislam.xyz/api')
       : '',
 
       is_available: product.is_available,
