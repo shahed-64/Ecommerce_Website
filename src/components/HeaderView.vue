@@ -1,4 +1,3 @@
-
 <template>
   <div class="store-header">
 
@@ -25,6 +24,7 @@
     <!-- MAIN HEADER -->
     <header class="main-header">
 
+      <!-- MOBILE MENU BUTTON -->
       <div class="mobile-menu-button">
         <button
           class="menu-toggle"
@@ -36,6 +36,7 @@
         </button>
       </div>
 
+      <!-- LOGO -->
       <RouterLink to="/" class="logo">
         <span class="logo-icon">
           <i class="bi bi-bag-heart-fill"></i>
@@ -46,19 +47,41 @@
         </span>
       </RouterLink>
 
+      <!-- DESKTOP NAVIGATION -->
+      <nav class="desktop-navigation">
+
+        <RouterLink to="/categories" class="category-button">
+          <i class="bi bi-grid-fill"></i>
+          All Categories
+          <i class="bi bi-chevron-down"></i>
+        </RouterLink>
+
+        <div class="nav-links">
+          <RouterLink to="/" exact-active-class="active">Home</RouterLink>
+          <RouterLink to="/shop">Shop</RouterLink>
+          <RouterLink to="/categories">Categories</RouterLink>
+          <RouterLink to="/deals">Deals</RouterLink>
+          <RouterLink to="/about">About</RouterLink>
+          <RouterLink to="/contact">Contact</RouterLink>
+        </div>
+
+      </nav>
+
+      <!-- SEARCH BOX -->
       <div class="search-box">
         <input
           type="text"
-          placeholder="Search for products..."
+          placeholder="Search products..."
           v-model="searchQuery"
           @keyup.enter="searchProducts"
         />
 
-        <button @click="searchProducts">
+        <button @click="searchProducts" aria-label="Search">
           <i class="bi bi-search"></i>
         </button>
       </div>
 
+      <!-- HEADER ACTIONS -->
       <div class="header-actions">
 
         <a href="#" class="header-action support-action">
@@ -80,25 +103,6 @@
 
       </div>
     </header>
-
-    <!-- DESKTOP NAVIGATION -->
-    <nav class="navigation desktop-navigation">
-
-      <RouterLink to="/categories" class="category-button">
-        <i class="bi bi-grid-fill"></i>
-        All Categories
-        <i class="bi bi-chevron-down"></i>
-      </RouterLink>
-
-      <div class="nav-links">
-        <RouterLink to="/" exact-active-class="active">Home</RouterLink>
-        <RouterLink to="/shop">Shop</RouterLink>
-        <RouterLink to="/categories">Categories</RouterLink>
-        <RouterLink to="/deals">Deals</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-        <RouterLink to="/contact">Contact</RouterLink>
-      </div>
-    </nav>
 
     <!-- MOBILE NAVIGATION -->
     <Transition name="mobile-menu">
@@ -187,6 +191,8 @@ function closeMobileMenu() {
   box-sizing: border-box;
 }
 
+/* MAIN HEADER WRAPPER */
+
 .store-header {
   position: fixed;
   top: 0;
@@ -238,24 +244,26 @@ function closeMobileMenu() {
   text-decoration: none;
 }
 
-/* MAIN HEADER */
+/* MAIN HEADER - EVERYTHING IN ONE ROW */
 
 .main-header {
-  height: 77px;
+  min-height: 77px;
   display: grid;
-  grid-template-columns: 320px minmax(300px, 1fr) 300px;
+  grid-template-columns: auto minmax(0, 1fr) 210px auto;
   align-items: center;
-  gap: 20px;
+  gap: 22px;
   padding: 0 5.3%;
-  border-bottom: 1px solid #eeeeF5;
   background: #fff;
+  border-bottom: 1px solid #eeeeF5;
 }
+
+/* LOGO */
 
 .logo {
   display: flex;
   align-items: center;
-  gap: 12px;
-  font-size: 27px;
+  gap: 10px;
+  font-size: 25px;
   font-weight: 800;
   letter-spacing: -1px;
   white-space: nowrap;
@@ -264,66 +272,139 @@ function closeMobileMenu() {
 }
 
 .logo-icon {
-  width: 39px;
-  height: 43px;
+  width: 37px;
+  height: 41px;
   border-radius: 7px;
   background: #ffad20;
   color: white;
   display: grid;
   place-items: center;
-  font-size: 28px;
+  font-size: 26px;
 }
 
 .logo-purple {
   color: #6d30d9;
 }
 
+/* DESKTOP NAVIGATION */
+
+.desktop-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  min-width: 0;
+  height: 77px;
+}
+
+.category-button {
+  min-width: 155px;
+  height: 40px;
+  flex-shrink: 0;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 10px;
+  background: linear-gradient(110deg, #8739e9, #9349ed);
+  color: white;
+  font-size: 12px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 7px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 23px;
+  min-width: 0;
+}
+
+.nav-links a {
+  display: flex;
+  align-items: center;
+  position: relative;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  text-decoration: none;
+  color: #19182e;
+  height: 77px;
+}
+
+.nav-links a.router-link-active {
+  color: #702de0;
+}
+
+.nav-links a.router-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #702de0;
+}
+
+/* SEARCH BOX */
+
 .search-box {
-  height: 46px;
+  width: 100%;
+  height: 39px;
   display: flex;
   background: #f5f4fa;
   border: 1px solid #e6e3ef;
-  border-radius: 30px;
+  border-radius: 25px;
   overflow: hidden;
 }
 
 .search-box input {
   flex: 1;
   min-width: 0;
-  padding: 0 25px;
+  width: 100%;
+  padding: 0 12px;
   border: none;
   outline: none;
   background: transparent;
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .search-box button {
-  width: 54px;
+  width: 39px;
+  flex-shrink: 0;
   border: none;
   background: #eeeaf7;
-  font-size: 20px;
+  color: #702de0;
+  font-size: 17px;
   cursor: pointer;
 }
+
+/* HEADER ACTIONS */
 
 .header-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 30px;
+  gap: 18px;
 }
 
 .header-action {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 13px;
+  gap: 7px;
+  font-size: 12px;
   color: #19182e;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .header-action > i,
 .cart-icon > i {
-  font-size: 24px;
+  font-size: 22px;
 }
 
 .cart-icon {
@@ -354,6 +435,8 @@ function closeMobileMenu() {
   margin-top: 2px;
 }
 
+/* MOBILE MENU BUTTON */
+
 .mobile-menu-button {
   display: none;
 }
@@ -371,84 +454,109 @@ function closeMobileMenu() {
   cursor: pointer;
 }
 
-/* DESKTOP NAVIGATION */
-.navigation {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-
-  height: 47px;
-  display: flex;
-  align-items: stretch;
-  padding: 0 5.3%;
-  border-bottom: 1px solid #e9e8ef;
-  gap: 25px;
-  background: #fff;
-}
-
-.category-button {
-  width: 223px;
-  flex-shrink: 0;
-  border: 0;
-  border-radius: 8px;
-  background: linear-gradient(110deg, #8739e9, #9349ed);
-  color: white;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  text-decoration: none;
-}
-
-.nav-links {
-  display: flex;
-  align-items: stretch;
-  gap: 50px;
-}
-
-.nav-links a {
-  display: flex;
-  align-items: center;
-  position: relative;
-  font-size: 14px;
-  font-weight: 600;
-  white-space: nowrap;
-  text-decoration: none;
-  color: #19182e;
-}
-
-.nav-links a.router-link-active {
-  color: #702de0;
-}
-
-.nav-links a.router-link-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: #702de0;
-}
-
 /* MOBILE NAVIGATION */
 
 .mobile-navigation {
   display: none;
 }
 
-@media (max-width: 1100px) {
+/* MEDIUM DESKTOP */
+
+@media (max-width: 1400px) {
   .main-header {
-    grid-template-columns: 200px 1fr 190px;
+    grid-template-columns: auto minmax(0, 1fr) 180px auto;
+    gap: 14px;
     padding: 0 3%;
   }
 
-  .navigation {
-    padding: 0 3%;
+  .logo {
+    font-size: 22px;
+    gap: 7px;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 38px;
+    font-size: 23px;
+  }
+
+  .desktop-navigation {
+    gap: 12px;
+  }
+
+  .category-button {
+    min-width: 135px;
+    font-size: 11px;
   }
 
   .nav-links {
-    gap: 24px;
+    gap: 15px;
+  }
+
+  .nav-links a {
+    font-size: 12px;
+  }
+
+  .header-actions {
+    gap: 12px;
+  }
+}
+
+/* SMALLER DESKTOP / TABLET */
+
+@media (max-width: 1100px) and (min-width: 769px) {
+  .main-header {
+    grid-template-columns: auto minmax(0, 1fr) 160px auto;
+    gap: 10px;
+    padding: 0 2%;
+  }
+
+  .logo {
+    font-size: 20px;
+  }
+
+  .desktop-navigation {
+    gap: 9px;
+  }
+
+  .category-button {
+    min-width: 115px;
+    font-size: 10px;
+    gap: 4px;
+  }
+
+  .nav-links {
+    gap: 10px;
+  }
+
+  .nav-links a {
+    font-size: 11px;
+  }
+
+  .search-box {
+    height: 36px;
+  }
+
+  .search-box input {
+    font-size: 11px;
+    padding: 0 8px;
+  }
+
+  .search-box button {
+    width: 32px;
+  }
+
+  .support-action span {
+    display: none;
+  }
+
+  .header-actions {
+    gap: 10px;
+  }
+
+  .header-action > i,
+  .cart-icon > i {
+    font-size: 20px;
   }
 }
 
@@ -467,7 +575,7 @@ function closeMobileMenu() {
   }
 
   .main-header {
-    height: 66px;
+    min-height: 66px;
     display: grid;
     grid-template-columns: 38px 1fr auto;
     padding: 0 15px;
@@ -487,6 +595,10 @@ function closeMobileMenu() {
     width: 32px;
     height: 35px;
     font-size: 21px;
+  }
+
+  .desktop-navigation {
+    display: none;
   }
 
   .search-box {
@@ -513,9 +625,7 @@ function closeMobileMenu() {
     font-size: 25px;
   }
 
-  .desktop-navigation {
-    display: none;
-  }
+  /* MOBILE NAVIGATION */
 
   .mobile-navigation {
     display: flex;
@@ -576,8 +686,11 @@ function closeMobileMenu() {
   opacity: 0;
   transform: translateY(-8px);
 }
+
+/* BODY SPACE FOR FIXED HEADER */
+
 :global(body) {
-  padding-top: 162px;
+  padding-top: 115px;
 }
 
 @media (max-width: 768px) {
