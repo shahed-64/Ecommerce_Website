@@ -1,11 +1,11 @@
 <template>
   <div class="store-header">
 
-    <!-- TOP BAR -->
+    <!-- TOP BAR: SCROLLS AWAY -->
     <div class="top-bar">
       <div class="top-left">
         <i class="bi bi-envelope-fill"></i>
-        support@bastrokutir.com
+        <span>support@bastrokutir.com</span>
       </div>
 
       <div class="top-center">
@@ -14,14 +14,14 @@
 
       <div class="top-right">
         <a href="#">Track Order</a>
-        <span>|</span>
+        <span class="top-divider"></span>
         <a href="#">Wishlist <i class="bi bi-heart"></i></a>
-        <span>|</span>
+        <span class="top-divider"></span>
         <a href="#">Login / Register</a>
       </div>
     </div>
 
-    <!-- MAIN HEADER -->
+    <!-- MAIN HEADER: SCROLLS AWAY -->
     <header class="main-header">
 
       <!-- MOBILE MENU BUTTON -->
@@ -42,18 +42,50 @@
           <i class="bi bi-bag-heart-fill"></i>
         </span>
 
-        <span>
+        <span class="logo-text">
           Bastro<span class="logo-purple">Kutir</span>
+          <small>Fashion & Lifestyle</small>
         </span>
       </RouterLink>
 
-      <!-- DESKTOP NAVIGATION -->
+      <!-- HEADER ACTIONS -->
+      <div class="header-actions">
+
+        <a href="mailto:support@bastrokutir.com" class="header-action support-action">
+          <span class="action-icon">
+            <i class="bi bi-headset"></i>
+          </span>
+
+          <span class="action-details">
+            <small>Need Help?</small>
+            <strong>Support</strong>
+          </span>
+        </a>
+
+        <RouterLink to="/cart" class="header-action cart-action">
+          <span class="action-icon cart-icon">
+            <i class="bi bi-bag"></i>
+            <span class="cart-count">{{ cartCount }}</span>
+          </span>
+
+          <span class="action-details">
+            <small>My Shopping</small>
+            <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
+          </span>
+        </RouterLink>
+
+      </div>
+    </header>
+
+    <!-- STICKY NAVIGATION + SEARCH -->
+    <div class="sticky-navigation">
+
       <nav class="desktop-navigation">
 
         <RouterLink to="/categories" class="category-button">
           <i class="bi bi-grid-fill"></i>
-          All Categories
-          <i class="bi bi-chevron-down"></i>
+          <span>All Categories</span>
+          <i class="bi bi-chevron-down category-arrow"></i>
         </RouterLink>
 
         <div class="nav-links">
@@ -65,90 +97,94 @@
           <RouterLink to="/contact">Contact</RouterLink>
         </div>
 
+        <!-- SEARCH -->
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Search products..."
+            v-model="searchQuery"
+            @keyup.enter="searchProducts"
+          />
+
+          <button @click="searchProducts" aria-label="Search">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+
       </nav>
 
-      <!-- SEARCH BOX -->
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Search products..."
-          v-model="searchQuery"
-          @keyup.enter="searchProducts"
-        />
-
-        <button @click="searchProducts" aria-label="Search">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
-
-      <!-- HEADER ACTIONS -->
-      <div class="header-actions">
-
-        <a href="#" class="header-action support-action">
-          <i class="bi bi-headset"></i>
-          <span>Support</span>
-        </a>
-
-        <RouterLink to="/cart" class="header-action cart-action">
-          <span class="cart-icon">
-            <i class="bi bi-cart3"></i>
-            <span class="cart-count">{{ cartCount }}</span>
-          </span>
-
-          <span class="cart-details">
-            Cart
-            <small>৳{{ cartTotal.toLocaleString('en-BD') }}</small>
-          </span>
-        </RouterLink>
-
-      </div>
-    </header>
-
-    <!-- MOBILE NAVIGATION -->
-    <Transition name="mobile-menu">
-      <nav v-if="mobileMenuOpen" class="mobile-navigation">
-
-        <RouterLink
-          to="/categories"
-          class="mobile-category-link"
-          @click="closeMobileMenu"
+      <!-- MOBILE STICKY BAR -->
+      <div class="mobile-sticky-bar">
+        <button
+          class="mobile-menu-toggle"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          :aria-expanded="mobileMenuOpen"
+          aria-label="Toggle navigation"
         >
-          <i class="bi bi-grid-fill"></i>
-          All Categories
-          <i class="bi bi-arrow-right"></i>
-        </RouterLink>
+          <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+          <span>Menu</span>
+        </button>
 
-        <RouterLink to="/" exact-active-class="active" @click="closeMobileMenu">
-          <i class="bi bi-house"></i> Home
-        </RouterLink>
+        <div class="mobile-search">
+          <input
+            type="text"
+            placeholder="Search products..."
+            v-model="searchQuery"
+            @keyup.enter="searchProducts"
+          />
 
-        <RouterLink to="/shop" @click="closeMobileMenu">
-          <i class="bi bi-bag"></i> Shop
-        </RouterLink>
+          <button @click="searchProducts" aria-label="Search">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
 
-        <RouterLink to="/categories" @click="closeMobileMenu">
-          <i class="bi bi-grid"></i> Categories
-        </RouterLink>
+      <!-- MOBILE NAVIGATION -->
+      <Transition name="mobile-menu">
+        <nav v-if="mobileMenuOpen" class="mobile-navigation">
 
-        <RouterLink to="/deals" @click="closeMobileMenu">
-          <i class="bi bi-tags"></i> Deals
-        </RouterLink>
+          <RouterLink
+            to="/categories"
+            class="mobile-category-link"
+            @click="closeMobileMenu"
+          >
+            <i class="bi bi-grid-fill"></i>
+            All Categories
+            <i class="bi bi-arrow-right"></i>
+          </RouterLink>
 
-        <RouterLink to="/about" @click="closeMobileMenu">
-          <i class="bi bi-info-circle"></i> About
-        </RouterLink>
+          <RouterLink to="/" exact-active-class="active" @click="closeMobileMenu">
+            <i class="bi bi-house"></i> Home
+          </RouterLink>
 
-        <RouterLink to="/contact" @click="closeMobileMenu">
-          <i class="bi bi-envelope"></i> Contact
-        </RouterLink>
+          <RouterLink to="/shop" @click="closeMobileMenu">
+            <i class="bi bi-bag"></i> Shop
+          </RouterLink>
 
-        <a href="mailto:support@bastrokutir.com">
-          <i class="bi bi-headset"></i> Customer Support
-        </a>
+          <RouterLink to="/categories" @click="closeMobileMenu">
+            <i class="bi bi-grid"></i> Categories
+          </RouterLink>
 
-      </nav>
-    </Transition>
+          <RouterLink to="/deals" @click="closeMobileMenu">
+            <i class="bi bi-tags"></i> Deals
+          </RouterLink>
 
+          <RouterLink to="/about" @click="closeMobileMenu">
+            <i class="bi bi-info-circle"></i> About
+          </RouterLink>
+
+          <RouterLink to="/contact" @click="closeMobileMenu">
+            <i class="bi bi-envelope"></i> Contact
+          </RouterLink>
+
+          <a href="mailto:support@bastrokutir.com">
+            <i class="bi bi-headset"></i> Customer Support
+          </a>
+
+        </nav>
+      </Transition>
+
+    </div>
   </div>
 </template>
 
@@ -191,28 +227,27 @@ function closeMobileMenu() {
   box-sizing: border-box;
 }
 
-/* MAIN HEADER WRAPPER */
-
 .store-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 10000;
+  position: relative;
   width: 100%;
+  z-index: 10000;
   background: #fff;
-  box-shadow: 0 2px 12px rgba(25, 24, 46, .06);
+  font-family: inherit;
 }
 
-/* TOP BAR */
+/* =========================
+   TOP BAR
+========================= */
 
 .top-bar {
-  height: 38px;
-  background: #f4f3fa;
+  min-height: 38px;
+  background: #f5f3fa;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 5.3%;
-  font-size: 13px;
+  color: #55516a;
+  font-size: 12px;
 }
 
 .top-left {
@@ -222,11 +257,12 @@ function closeMobileMenu() {
 }
 
 .top-left i {
-  font-size: 17px;
+  color: #7135d5;
+  font-size: 15px;
 }
 
 .top-center strong {
-  color: #6424d5;
+  color: #7135d5;
 }
 
 .top-right {
@@ -235,26 +271,35 @@ function closeMobileMenu() {
   gap: 13px;
 }
 
-.top-right span {
-  color: #c8c6d3;
-}
-
 .top-right a {
-  color: #19182e;
+  color: #55516a;
   text-decoration: none;
+  transition: color .2s;
 }
 
-/* MAIN HEADER - EVERYTHING IN ONE ROW */
+.top-right a:hover {
+  color: #7135d5;
+}
+
+.top-divider {
+  height: 13px;
+  width: 1px;
+  background: #d9d5e4;
+}
+
+/* =========================
+   MAIN HEADER
+========================= */
 
 .main-header {
-  min-height: 77px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) 210px auto;
-  align-items: center;
-  gap: 22px;
+  min-height: 86px;
   padding: 0 5.3%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 25px;
   background: #fff;
-  border-bottom: 1px solid #eeeeF5;
+  border-bottom: 1px solid #f0edf5;
 }
 
 /* LOGO */
@@ -262,149 +307,97 @@ function closeMobileMenu() {
 .logo {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 25px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  white-space: nowrap;
-  color: #19182e;
+  gap: 11px;
+  color: #242039;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .logo-icon {
-  width: 37px;
-  height: 41px;
-  border-radius: 7px;
-  background: #ffad20;
-  color: white;
+  width: 47px;
+  height: 47px;
+  border-radius: 13px;
+  background: linear-gradient(135deg, #ffb52e, #f58a13);
+  color: #fff;
   display: grid;
   place-items: center;
-  font-size: 26px;
+  font-size: 27px;
+  box-shadow: 0 5px 12px rgba(245, 138, 19, .2);
+}
+
+.logo-text {
+  font-size: 27px;
+  font-weight: 850;
+  letter-spacing: -1.2px;
+  line-height: 1.05;
 }
 
 .logo-purple {
-  color: #6d30d9;
+  color: #7738dc;
 }
 
-/* DESKTOP NAVIGATION */
-
-.desktop-navigation {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 20px;
-  min-width: 0;
-  height: 77px;
-}
-
-.category-button {
-  min-width: 155px;
-  height: 40px;
-  flex-shrink: 0;
-  border: 0;
-  border-radius: 7px;
-  padding: 0 10px;
-  background: linear-gradient(110deg, #8739e9, #9349ed);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  gap: 7px;
-  text-decoration: none;
-  white-space: nowrap;
-}
-
-.nav-links {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 23px;
-  min-width: 0;
-}
-
-.nav-links a {
-  display: flex;
-  align-items: center;
-  position: relative;
-  font-size: 13px;
+.logo-text small {
+  display: block;
+  margin-top: 5px;
+  font-size: 9px;
   font-weight: 600;
-  white-space: nowrap;
-  text-decoration: none;
-  color: #19182e;
-  height: 77px;
-}
-
-.nav-links a.router-link-active {
-  color: #702de0;
-}
-
-.nav-links a.router-link-active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  width: 100%;
-  height: 2px;
-  background: #702de0;
-}
-
-/* SEARCH BOX */
-
-.search-box {
-  width: 100%;
-  height: 39px;
-  display: flex;
-  background: #f5f4fa;
-  border: 1px solid #e6e3ef;
-  border-radius: 25px;
-  overflow: hidden;
-}
-
-.search-box input {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-  padding: 0 12px;
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 12px;
-}
-
-.search-box button {
-  width: 39px;
-  flex-shrink: 0;
-  border: none;
-  background: #eeeaf7;
-  color: #702de0;
-  font-size: 17px;
-  cursor: pointer;
+  letter-spacing: 2px;
+  color: #9691a6;
+  text-transform: uppercase;
 }
 
 /* HEADER ACTIONS */
 
 .header-actions {
   display: flex;
-  justify-content: flex-end;
   align-items: center;
-  gap: 18px;
+  gap: 32px;
 }
 
 .header-action {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font-size: 12px;
-  color: #19182e;
+  gap: 11px;
+  color: #29253d;
   text-decoration: none;
-  white-space: nowrap;
+  transition: .2s;
 }
 
-.header-action > i,
-.cart-icon > i {
-  font-size: 22px;
+.header-action:hover {
+  color: #7135d5;
+}
+
+.action-icon {
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  background: #f5f1fc;
+  display: grid;
+  place-items: center;
+  color: #7135d5;
+  font-size: 21px;
+  transition: .2s;
+}
+
+.header-action:hover .action-icon {
+  background: #7135d5;
+  color: #fff;
+}
+
+.action-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.action-details small {
+  color: #9993a9;
+  font-size: 10px;
+}
+
+.action-details strong {
+  font-size: 13px;
+  font-weight: 750;
 }
 
 .cart-icon {
@@ -413,116 +406,248 @@ function closeMobileMenu() {
 
 .cart-count {
   position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 17px;
-  height: 17px;
+  top: -5px;
+  right: -5px;
+  min-width: 19px;
+  height: 19px;
+  padding: 0 4px;
+  border-radius: 20px;
+  background: #f04462;
+  color: white;
+  font-size: 10px;
   display: grid;
   place-items: center;
-  background: #ff3154;
+  border: 2px solid #fff;
+}
+
+/* =========================
+   STICKY NAVIGATION
+========================= */
+
+.sticky-navigation {
+  position: sticky;
+  top: 0;
+  z-index: 10001;
+  background: #fff;
+  box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
+  border-bottom: 1px solid #eeeaf5;
+}
+
+.desktop-navigation {
+  min-height: 59px;
+  padding: 0 5.3%;
+  display: flex;
+  align-items: center;
+  gap: 25px;
+}
+
+/* CATEGORY BUTTON */
+
+.category-button {
+  height: 39px;
+  min-width: 170px;
+  padding: 0 13px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  background: linear-gradient(110deg, #7434d4, #9250e9);
   color: white;
-  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 4px 10px rgba(113, 53, 213, .15);
+  transition: .2s;
+}
+
+.category-button:hover {
+  background: linear-gradient(110deg, #6225c2, #8138dc);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.category-arrow {
   font-size: 10px;
 }
 
-.cart-action {
-  align-items: flex-start;
+/* NAV LINKS */
+
+.nav-links {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(13px, 2vw, 27px);
+  min-width: 0;
 }
 
-.cart-action small {
-  display: block;
+.nav-links a {
+  height: 59px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+  color: #464157;
+  font-size: 13px;
+  font-weight: 650;
+  text-decoration: none;
+  transition: color .2s;
+}
+
+.nav-links a:hover,
+.nav-links a.router-link-active {
+  color: #7135d5;
+}
+
+.nav-links a.router-link-active::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  border-radius: 4px 4px 0 0;
+  background: #7135d5;
+}
+
+/* SEARCH BOX */
+
+.search-box {
+  width: 205px;
+  height: 37px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid #e9e4f1;
+  border-radius: 25px;
+  background: #f8f6fb;
+  transition: .2s;
+}
+
+.search-box:focus-within {
+  border-color: #9562e5;
+  box-shadow: 0 0 0 3px rgba(113, 53, 213, .08);
+  background: #fff;
+}
+
+.search-box input {
+  width: 100%;
+  min-width: 0;
+  flex: 1;
+  height: 100%;
+  padding: 0 13px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: #29253d;
   font-size: 11px;
-  margin-top: 2px;
 }
 
-/* MOBILE MENU BUTTON */
+.search-box input::placeholder {
+  color: #a29caf;
+}
 
-.mobile-menu-button {
+.search-box button {
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  border: none;
+  background: #7135d5;
+  color: white;
+  font-size: 14px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.search-box button:hover {
+  background: #5822b5;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+.mobile-menu-button,
+.mobile-sticky-bar {
   display: none;
 }
-
-.menu-toggle {
-  width: 38px;
-  height: 38px;
-  border: none;
-  background: #f5f2fa;
-  color: #19182e;
-  border-radius: 6px;
-  font-size: 23px;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-/* MOBILE NAVIGATION */
 
 .mobile-navigation {
   display: none;
 }
 
-/* MEDIUM DESKTOP */
+/* =========================
+   MEDIUM DESKTOP
+========================= */
 
-@media (max-width: 1400px) {
-  .main-header {
-    grid-template-columns: auto minmax(0, 1fr) 180px auto;
-    gap: 14px;
-    padding: 0 3%;
-  }
-
-  .logo {
-    font-size: 22px;
-    gap: 7px;
-  }
-
-  .logo-icon {
-    width: 34px;
-    height: 38px;
-    font-size: 23px;
+@media (max-width: 1250px) and (min-width: 769px) {
+  .main-header,
+  .desktop-navigation {
+    padding-left: 3%;
+    padding-right: 3%;
   }
 
   .desktop-navigation {
-    gap: 12px;
+    gap: 14px;
   }
 
   .category-button {
-    min-width: 135px;
-    font-size: 11px;
+    min-width: 145px;
   }
 
   .nav-links {
-    gap: 15px;
+    gap: 13px;
   }
 
   .nav-links a {
     font-size: 12px;
   }
 
+  .search-box {
+    width: 175px;
+  }
+
   .header-actions {
-    gap: 12px;
+    gap: 20px;
   }
 }
 
-/* SMALLER DESKTOP / TABLET */
-
-@media (max-width: 1100px) and (min-width: 769px) {
-  .main-header {
-    grid-template-columns: auto minmax(0, 1fr) 160px auto;
-    gap: 10px;
-    padding: 0 2%;
+@media (max-width: 1000px) and (min-width: 769px) {
+  .main-header,
+  .desktop-navigation {
+    padding-left: 2%;
+    padding-right: 2%;
   }
 
-  .logo {
-    font-size: 20px;
+  .logo-text {
+    font-size: 23px;
+  }
+
+  .logo-icon {
+    width: 41px;
+    height: 41px;
+    font-size: 23px;
+  }
+
+  .header-actions {
+    gap: 12px;
+  }
+
+  .action-details small {
+    display: none;
   }
 
   .desktop-navigation {
-    gap: 9px;
+    gap: 10px;
   }
 
   .category-button {
-    min-width: 115px;
+    min-width: 125px;
     font-size: 10px;
-    gap: 4px;
+    gap: 5px;
   }
 
   .nav-links {
@@ -534,37 +659,23 @@ function closeMobileMenu() {
   }
 
   .search-box {
-    height: 36px;
+    width: 145px;
   }
 
   .search-box input {
-    font-size: 11px;
     padding: 0 8px;
-  }
-
-  .search-box button {
-    width: 32px;
-  }
-
-  .support-action span {
-    display: none;
-  }
-
-  .header-actions {
-    gap: 10px;
-  }
-
-  .header-action > i,
-  .cart-icon > i {
-    font-size: 20px;
+    font-size: 10px;
   }
 }
 
-/* MOBILE */
+/* =========================
+   MOBILE DESIGN
+========================= */
 
 @media (max-width: 768px) {
+
   .top-bar {
-    height: 30px;
+    min-height: 30px;
     padding: 0 15px;
     font-size: 10px;
   }
@@ -575,38 +686,37 @@ function closeMobileMenu() {
   }
 
   .main-header {
-    min-height: 66px;
-    display: grid;
-    grid-template-columns: 38px 1fr auto;
+    min-height: 70px;
     padding: 0 15px;
     gap: 10px;
   }
 
   .mobile-menu-button {
-    display: block;
+    display: none;
   }
 
   .logo {
-    font-size: 21px;
-    gap: 7px;
+    gap: 8px;
   }
 
   .logo-icon {
-    width: 32px;
-    height: 35px;
+    width: 37px;
+    height: 37px;
     font-size: 21px;
+    border-radius: 10px;
   }
 
-  .desktop-navigation {
-    display: none;
+  .logo-text {
+    font-size: 22px;
   }
 
-  .search-box {
-    display: none;
+  .logo-text small {
+    font-size: 8px;
+    letter-spacing: 1.5px;
   }
 
   .header-actions {
-    gap: 10px;
+    gap: 0;
   }
 
   .support-action {
@@ -614,59 +724,128 @@ function closeMobileMenu() {
   }
 
   .cart-action {
-    align-items: center;
+    gap: 0;
   }
 
-  .cart-action .cart-details {
+  .cart-action .action-details {
     display: none;
   }
 
-  .cart-icon > i {
-    font-size: 25px;
+  .cart-action .action-icon {
+    width: 39px;
+    height: 39px;
+    font-size: 20px;
   }
 
-  /* MOBILE NAVIGATION */
+  /* STICKY MOBILE BAR */
+
+  .desktop-navigation {
+    display: none;
+  }
+
+  .mobile-sticky-bar {
+    min-height: 55px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 15px;
+  }
+
+  .mobile-menu-toggle {
+    height: 36px;
+    padding: 0 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    flex-shrink: 0;
+    border: none;
+    border-radius: 6px;
+    background: #f2ecfb;
+    color: #7135d5;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .mobile-menu-toggle i {
+    font-size: 18px;
+  }
+
+  .mobile-search {
+    height: 37px;
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    overflow: hidden;
+    border: 1px solid #e9e4f1;
+    border-radius: 22px;
+    background: #f8f6fb;
+  }
+
+  .mobile-search input {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    padding: 0 12px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 11px;
+  }
+
+  .mobile-search button {
+    width: 38px;
+    flex-shrink: 0;
+    border: none;
+    background: #7135d5;
+    color: #fff;
+    font-size: 14px;
+  }
+
+  /* MOBILE MENU */
 
   .mobile-navigation {
     display: flex;
     flex-direction: column;
-    background: #fff;
-    border-top: 1px solid #eee9f4;
-    box-shadow: 0 12px 20px rgba(0,0,0,.10);
-    padding: 8px 18px 16px;
-    max-height: calc(100vh - 100px);
+    padding: 10px 16px 15px;
+    background: white;
+    border-top: 1px solid #eeeaf5;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, .10);
+    max-height: calc(100vh - 90px);
     overflow-y: auto;
   }
 
   .mobile-navigation > a {
-    min-height: 47px;
+    min-height: 46px;
     display: flex;
     align-items: center;
-    gap: 13px;
-    border-bottom: 1px solid #f0edf4;
-    color: #29243a;
+    gap: 12px;
+    border-bottom: 1px solid #f0edf5;
+    color: #393449;
     text-decoration: none;
     font-size: 13px;
     font-weight: 600;
   }
 
   .mobile-navigation > a > i {
-    color: #7838d4;
+    color: #7135d5;
     font-size: 17px;
   }
 
   .mobile-navigation > a.router-link-active {
-    color: #702de0;
+    color: #7135d5;
   }
 
   .mobile-navigation .mobile-category-link {
+    min-height: 43px;
     justify-content: flex-start;
-    background: #f5f0fc;
-    color: #702de0;
-    padding: 0 13px;
-    margin: 5px 0 10px;
+    padding: 0 12px;
+    margin: 4px 0 9px;
     border: none;
     border-radius: 6px;
+    background: #f4effc;
+    color: #7135d5;
   }
 
   .mobile-category-link i:last-child {
@@ -674,7 +853,7 @@ function closeMobileMenu() {
   }
 }
 
-/* MENU ANIMATION */
+/* MOBILE MENU ANIMATION */
 
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
@@ -685,17 +864,5 @@ function closeMobileMenu() {
 .mobile-menu-leave-to {
   opacity: 0;
   transform: translateY(-8px);
-}
-
-/* BODY SPACE FOR FIXED HEADER */
-
-:global(body) {
-  padding-top: 115px;
-}
-
-@media (max-width: 768px) {
-  :global(body) {
-    padding-top: 96px;
-  }
 }
 </style>
