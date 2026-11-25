@@ -1,6 +1,5 @@
 <template>
   <div class="store-header">
-
     <header class="main-header">
 
       <!-- LOGO -->
@@ -164,12 +163,14 @@ function closeMobileMenu() {
 /* MAIN HEADER */
 
 .store-header {
-  position: sticky;
-  top: 0;
+  position: sticky !important;
+  top: 0 !important;
+  left: 0;
   width: 100%;
-  z-index: 10000;
+  z-index: 100000;
   background: #fff;
   box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
+  align-self: flex-start;
 }
 
 .main-header {
@@ -646,15 +647,5 @@ function closeMobileMenu() {
 .mobile-menu-leave-to {
   opacity: 0;
   transform: translateY(-8px);
-}
-.store-header {
-  position: sticky !important;
-  top: 0 !important;
-  left: 0;
-  width: 100%;
-  z-index: 100000;
-  background: #fff;
-  box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
-  align-self: flex-start;
 }
 </style>
