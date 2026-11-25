@@ -1,7 +1,7 @@
 <template>
   <div class="store-header">
 
-    <!-- TOP BAR: SCROLLS AWAY -->
+    <!-- TOP BAR -->
     <div class="top-bar">
       <div class="top-left">
         <i class="bi bi-envelope-fill"></i>
@@ -14,14 +14,14 @@
 
       <div class="top-right">
         <a href="#">Track Order</a>
-        <span class="top-divider"></span>
+        <span>|</span>
         <a href="#">Wishlist <i class="bi bi-heart"></i></a>
-        <span class="top-divider"></span>
+        <span>|</span>
         <a href="#">Login / Register</a>
       </div>
     </div>
 
-    <!-- MAIN HEADER: SCROLLS AWAY -->
+    <!-- MAIN HEADER: LOGO + SUPPORT + CART -->
     <header class="main-header">
 
       <!-- MOBILE MENU BUTTON -->
@@ -64,7 +64,7 @@
 
         <RouterLink to="/cart" class="header-action cart-action">
           <span class="action-icon cart-icon">
-            <i class="bi bi-bag"></i>
+            <i class="bi bi-cart3"></i>
             <span class="cart-count">{{ cartCount }}</span>
           </span>
 
@@ -77,9 +77,10 @@
       </div>
     </header>
 
-    <!-- STICKY NAVIGATION + SEARCH -->
+    <!-- STICKY MENU + SEARCH ROW -->
     <div class="sticky-navigation">
 
+      <!-- DESKTOP NAVIGATION -->
       <nav class="desktop-navigation">
 
         <RouterLink to="/categories" class="category-button">
@@ -97,7 +98,7 @@
           <RouterLink to="/contact">Contact</RouterLink>
         </div>
 
-        <!-- SEARCH -->
+        <!-- SEARCH BOX -->
         <div class="search-box">
           <input
             type="text"
@@ -113,8 +114,9 @@
 
       </nav>
 
-      <!-- MOBILE STICKY BAR -->
-      <div class="mobile-sticky-bar">
+      <!-- MOBILE MENU + SEARCH -->
+      <div class="mobile-navigation-bar">
+
         <button
           class="mobile-menu-toggle"
           @click="mobileMenuOpen = !mobileMenuOpen"
@@ -137,9 +139,10 @@
             <i class="bi bi-search"></i>
           </button>
         </div>
+
       </div>
 
-      <!-- MOBILE NAVIGATION -->
+      <!-- MOBILE NAVIGATION LINKS -->
       <Transition name="mobile-menu">
         <nav v-if="mobileMenuOpen" class="mobile-navigation">
 
@@ -185,6 +188,7 @@
       </Transition>
 
     </div>
+
   </div>
 </template>
 
@@ -227,12 +231,15 @@ function closeMobileMenu() {
   box-sizing: border-box;
 }
 
+/* =========================
+   HEADER WRAPPER
+========================= */
+
 .store-header {
   position: relative;
   width: 100%;
   z-index: 10000;
   background: #fff;
-  font-family: inherit;
 }
 
 /* =========================
@@ -240,7 +247,7 @@ function closeMobileMenu() {
 ========================= */
 
 .top-bar {
-  min-height: 38px;
+  height: 38px;
   background: #f5f3fa;
   display: flex;
   justify-content: space-between;
@@ -281,18 +288,13 @@ function closeMobileMenu() {
   color: #7135d5;
 }
 
-.top-divider {
-  height: 13px;
-  width: 1px;
-  background: #d9d5e4;
-}
-
 /* =========================
    MAIN HEADER
+   LOGO + SUPPORT + CART
 ========================= */
 
 .main-header {
-  min-height: 86px;
+  min-height: 82px;
   padding: 0 5.3%;
   display: flex;
   justify-content: space-between;
@@ -314,21 +316,21 @@ function closeMobileMenu() {
 }
 
 .logo-icon {
-  width: 47px;
-  height: 47px;
-  border-radius: 13px;
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #ffb52e, #f58a13);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 27px;
-  box-shadow: 0 5px 12px rgba(245, 138, 19, .2);
+  font-size: 26px;
+  box-shadow: 0 4px 10px rgba(245, 138, 19, .18);
 }
 
 .logo-text {
-  font-size: 27px;
+  font-size: 26px;
   font-weight: 850;
-  letter-spacing: -1.2px;
+  letter-spacing: -1px;
   line-height: 1.05;
 }
 
@@ -341,7 +343,7 @@ function closeMobileMenu() {
   margin-top: 5px;
   font-size: 9px;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 1.8px;
   color: #9691a6;
   text-transform: uppercase;
 }
@@ -357,7 +359,7 @@ function closeMobileMenu() {
 .header-action {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 10px;
   color: #29253d;
   text-decoration: none;
   transition: .2s;
@@ -421,7 +423,8 @@ function closeMobileMenu() {
 }
 
 /* =========================
-   STICKY NAVIGATION
+   STICKY MENU ROW
+   MENU + SEARCH
 ========================= */
 
 .sticky-navigation {
@@ -434,24 +437,24 @@ function closeMobileMenu() {
 }
 
 .desktop-navigation {
-  min-height: 59px;
+  min-height: 57px;
   padding: 0 5.3%;
   display: flex;
   align-items: center;
-  gap: 25px;
+  gap: 23px;
 }
 
 /* CATEGORY BUTTON */
 
 .category-button {
-  height: 39px;
-  min-width: 170px;
+  height: 38px;
+  min-width: 165px;
   padding: 0 13px;
   border-radius: 7px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 9px;
   flex-shrink: 0;
   background: linear-gradient(110deg, #7434d4, #9250e9);
   color: white;
@@ -465,11 +468,6 @@ function closeMobileMenu() {
 .category-button:hover {
   background: linear-gradient(110deg, #6225c2, #8138dc);
   color: white;
-  transform: translateY(-1px);
-}
-
-.category-arrow {
-  font-size: 10px;
 }
 
 /* NAV LINKS */
@@ -479,12 +477,12 @@ function closeMobileMenu() {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(13px, 2vw, 27px);
+  gap: clamp(13px, 1.8vw, 25px);
   min-width: 0;
 }
 
 .nav-links a {
-  height: 59px;
+  height: 57px;
   position: relative;
   display: flex;
   align-items: center;
@@ -512,11 +510,11 @@ function closeMobileMenu() {
   background: #7135d5;
 }
 
-/* SEARCH BOX */
+/* SEARCH */
 
 .search-box {
   width: 205px;
-  height: 37px;
+  height: 36px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -538,7 +536,7 @@ function closeMobileMenu() {
   min-width: 0;
   flex: 1;
   height: 100%;
-  padding: 0 13px;
+  padding: 0 12px;
   border: none;
   outline: none;
   background: transparent;
@@ -552,7 +550,7 @@ function closeMobileMenu() {
 
 .search-box button {
   width: 37px;
-  height: 37px;
+  height: 36px;
   flex-shrink: 0;
   border: none;
   background: #7135d5;
@@ -567,14 +565,11 @@ function closeMobileMenu() {
 }
 
 /* =========================
-   MOBILE
+   MOBILE NAVIGATION
 ========================= */
 
 .mobile-menu-button,
-.mobile-sticky-bar {
-  display: none;
-}
-
+.mobile-navigation-bar,
 .mobile-navigation {
   display: none;
 }
@@ -629,7 +624,6 @@ function closeMobileMenu() {
   .logo-icon {
     width: 41px;
     height: 41px;
-    font-size: 23px;
   }
 
   .header-actions {
@@ -669,13 +663,13 @@ function closeMobileMenu() {
 }
 
 /* =========================
-   MOBILE DESIGN
+   MOBILE
 ========================= */
 
 @media (max-width: 768px) {
 
   .top-bar {
-    min-height: 30px;
+    height: 30px;
     padding: 0 15px;
     font-size: 10px;
   }
@@ -686,13 +680,9 @@ function closeMobileMenu() {
   }
 
   .main-header {
-    min-height: 70px;
+    min-height: 65px;
     padding: 0 15px;
     gap: 10px;
-  }
-
-  .mobile-menu-button {
-    display: none;
   }
 
   .logo {
@@ -700,19 +690,19 @@ function closeMobileMenu() {
   }
 
   .logo-icon {
-    width: 37px;
-    height: 37px;
+    width: 36px;
+    height: 36px;
     font-size: 21px;
-    border-radius: 10px;
+    border-radius: 9px;
   }
 
   .logo-text {
-    font-size: 22px;
+    font-size: 21px;
   }
 
   .logo-text small {
     font-size: 8px;
-    letter-spacing: 1.5px;
+    letter-spacing: 1.4px;
   }
 
   .header-actions {
@@ -737,18 +727,18 @@ function closeMobileMenu() {
     font-size: 20px;
   }
 
-  /* STICKY MOBILE BAR */
+  /* MOBILE STICKY MENU + SEARCH */
 
   .desktop-navigation {
     display: none;
   }
 
-  .mobile-sticky-bar {
+  .mobile-navigation-bar {
     min-height: 55px;
+    padding: 0 15px;
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 0 15px;
   }
 
   .mobile-menu-toggle {
@@ -801,15 +791,16 @@ function closeMobileMenu() {
     background: #7135d5;
     color: #fff;
     font-size: 14px;
+    cursor: pointer;
   }
 
-  /* MOBILE MENU */
+  /* MOBILE MENU LINKS */
 
   .mobile-navigation {
     display: flex;
     flex-direction: column;
     padding: 10px 16px 15px;
-    background: white;
+    background: #fff;
     border-top: 1px solid #eeeaf5;
     box-shadow: 0 12px 20px rgba(0, 0, 0, .10);
     max-height: calc(100vh - 90px);
