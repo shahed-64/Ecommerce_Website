@@ -21,7 +21,7 @@
       </div>
     </div>
 
-    <!-- MAIN HEADER: LOGO + SUPPORT + CART -->
+    <!-- MAIN HEADER -->
     <header class="main-header">
 
       <!-- MOBILE MENU BUTTON -->
@@ -51,7 +51,10 @@
       <!-- HEADER ACTIONS -->
       <div class="header-actions">
 
-        <a href="mailto:support@bastrokutir.com" class="header-action support-action">
+        <a
+          href="mailto:support@bastrokutir.com"
+          class="header-action support-action"
+        >
           <span class="action-icon">
             <i class="bi bi-headset"></i>
           </span>
@@ -77,8 +80,12 @@
       </div>
     </header>
 
-    <!-- STICKY MENU + SEARCH ROW -->
-    <div class="sticky-navigation">
+    <!-- MENU + SEARCH ROW -->
+    <div
+      ref="stickyNavigation"
+      class="sticky-navigation"
+      :class="{ 'is-fixed': isSticky }"
+    >
 
       <!-- DESKTOP NAVIGATION -->
       <nav class="desktop-navigation">
@@ -98,7 +105,7 @@
           <RouterLink to="/contact">Contact</RouterLink>
         </div>
 
-        <!-- SEARCH BOX -->
+        <!-- DESKTOP SEARCH -->
         <div class="search-box">
           <input
             type="text"
@@ -156,7 +163,11 @@
             <i class="bi bi-arrow-right"></i>
           </RouterLink>
 
-          <RouterLink to="/" exact-active-class="active" @click="closeMobileMenu">
+          <RouterLink
+            to="/"
+            exact-active-class="active"
+            @click="closeMobileMenu"
+          >
             <i class="bi bi-house"></i> Home
           </RouterLink>
 
@@ -189,11 +200,18 @@
 
     </div>
 
+    <!-- SPACE PRESERVER WHEN MENU ROW BECOMES FIXED -->
+    <div
+      v-if="isSticky"
+      class="sticky-placeholder"
+      :style="{ height: stickyHeight + 'px' }"
+    ></div>
+
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
 
 defineProps({
   cartCount: {
@@ -208,6 +226,40 @@ defineProps({
 
 const searchQuery = ref('')
 const mobileMenuOpen = ref(false)
+
+const stickyNavigation = ref(null)
+const isSticky = ref(false)
+const stickyHeight = ref(57)
+
+let stickyPosition = 0
+let resizeObserver = null
+
+function updateStickyPosition() {
+  if (!stickyNavigation.value || isSticky.value) return
+
+  stickyPosition =
+    stickyNavigation.value.getBoundingClientRect().top + window.scrollY
+
+  stickyHeight.value = stickyNavigation.value.offsetHeight
+}
+
+function handleScroll() {
+  if (!stickyNavigation.value) return
+
+  const shouldStick = window.scrollY >= stickyPosition
+
+  if (shouldStick !== isSticky.value) {
+    isSticky.value = shouldStick
+  }
+}
+
+function updateStickyHeight() {
+  nextTick(() => {
+    if (stickyNavigation.value) {
+      stickyHeight.value = stickyNavigation.value.offsetHeight
+    }
+  })
+}
 
 function searchProducts() {
   if (!searchQuery.value.trim()) return
@@ -224,6 +276,38 @@ function searchProducts() {
 function closeMobileMenu() {
   mobileMenuOpen.value = false
 }
+
+watch(mobileMenuOpen, () => {
+  updateStickyHeight()
+})
+
+onMounted(async () => {
+  await nextTick()
+
+  updateStickyPosition()
+
+  window.addEventListener('scroll', handleScroll, { passive: true })
+  window.addEventListener('resize', updateStickyPosition)
+
+  if (stickyNavigation.value && window.ResizeObserver) {
+    resizeObserver = new ResizeObserver(() => {
+      updateStickyHeight()
+    })
+
+    resizeObserver.observe(stickyNavigation.value)
+  }
+
+  handleScroll()
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+  window.removeEventListener('resize', updateStickyPosition)
+
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
+})
 </script>
 
 <style scoped>
@@ -231,9 +315,7 @@ function closeMobileMenu() {
   box-sizing: border-box;
 }
 
-/* =========================
-   HEADER WRAPPER
-========================= */
+/* HEADER WRAPPER */
 
 .store-header {
   position: relative;
@@ -242,9 +324,7 @@ function closeMobileMenu() {
   background: #fff;
 }
 
-/* =========================
-   TOP BAR
-========================= */
+/* TOP BAR */
 
 .top-bar {
   height: 38px;
@@ -288,10 +368,7 @@ function closeMobileMenu() {
   color: #7135d5;
 }
 
-/* =========================
-   MAIN HEADER
-   LOGO + SUPPORT + CART
-========================= */
+/* MAIN HEADER */
 
 .main-header {
   min-height: 82px;
@@ -422,19 +499,37 @@ function closeMobileMenu() {
   border: 2px solid #fff;
 }
 
-/* =========================
-   STICKY MENU ROW
-   MENU + SEARCH
-========================= */
+/* MENU + SEARCH ROW */
 
 .sticky-navigation {
-  position: sticky;
-  top: 0;
+  position: relative;
+  width: 100%;
   z-index: 10001;
   background: #fff;
   box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
   border-bottom: 1px solid #eeeaf5;
 }
+
+/* FIXED STATE */
+
+.sticky-navigation.is-fixed {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 10001;
+  box-shadow: 0 4px 15px rgba(35, 24, 65, .12);
+}
+
+/* PLACEHOLDER */
+
+.sticky-placeholder {
+  width: 100%;
+  pointer-events: none;
+}
+
+/* DESKTOP NAVIGATION */
 
 .desktop-navigation {
   min-height: 57px;
@@ -510,7 +605,7 @@ function closeMobileMenu() {
   background: #7135d5;
 }
 
-/* SEARCH */
+/* DESKTOP SEARCH */
 
 .search-box {
   width: 205px;
@@ -564,9 +659,7 @@ function closeMobileMenu() {
   background: #5822b5;
 }
 
-/* =========================
-   MOBILE NAVIGATION
-========================= */
+/* MOBILE ELEMENTS */
 
 .mobile-menu-button,
 .mobile-navigation-bar,
@@ -574,9 +667,7 @@ function closeMobileMenu() {
   display: none;
 }
 
-/* =========================
-   MEDIUM DESKTOP
-========================= */
+/* MEDIUM DESKTOP */
 
 @media (max-width: 1250px) and (min-width: 769px) {
   .main-header,
@@ -662,9 +753,7 @@ function closeMobileMenu() {
   }
 }
 
-/* =========================
-   MOBILE
-========================= */
+/* MOBILE */
 
 @media (max-width: 768px) {
 
@@ -727,7 +816,7 @@ function closeMobileMenu() {
     font-size: 20px;
   }
 
-  /* MOBILE STICKY MENU + SEARCH */
+  /* MOBILE MENU + SEARCH */
 
   .desktop-navigation {
     display: none;
