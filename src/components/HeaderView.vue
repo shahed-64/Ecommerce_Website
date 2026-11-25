@@ -1,40 +1,6 @@
 <template>
   <div class="store-header">
-
-    <!-- TOP BAR -->
-    <div class="top-bar">
-      <div class="top-left">
-        <i class="bi bi-envelope-fill"></i>
-        <span>support@bastrokutir.com</span>
-      </div>
-
-      <div class="top-center">
-        Free Shipping on Orders <strong>Above ৳1,000</strong>
-      </div>
-
-      <div class="top-right">
-        <a href="#">Track Order</a>
-        <span>|</span>
-        <a href="#">Wishlist <i class="bi bi-heart"></i></a>
-        <span>|</span>
-        <a href="#">Login / Register</a>
-      </div>
-    </div>
-
-    <!-- MAIN HEADER -->
     <header class="main-header">
-
-      <!-- MOBILE MENU BUTTON -->
-      <div class="mobile-menu-button">
-        <button
-          class="menu-toggle"
-          @click="mobileMenuOpen = !mobileMenuOpen"
-          :aria-expanded="mobileMenuOpen"
-          aria-label="Toggle navigation"
-        >
-          <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
-        </button>
-      </div>
 
       <!-- LOGO -->
       <RouterLink to="/" class="logo">
@@ -48,170 +14,116 @@
         </span>
       </RouterLink>
 
-      <!-- HEADER ACTIONS -->
-      <div class="header-actions">
+      <!-- CATEGORY BUTTON -->
+      <RouterLink to="/categories" class="category-button">
+        <i class="bi bi-grid-fill"></i>
+        <span>Categories</span>
+      </RouterLink>
 
-        <a
-          href="mailto:support@bastrokutir.com"
-          class="header-action support-action"
-        >
-          <span class="action-icon">
-            <i class="bi bi-headset"></i>
-          </span>
-
-          <span class="action-details">
-            <small>Need Help?</small>
-            <strong>Support</strong>
-          </span>
-        </a>
-
-        <RouterLink to="/cart" class="header-action cart-action">
-          <span class="action-icon cart-icon">
-            <i class="bi bi-cart3"></i>
-            <span class="cart-count">{{ cartCount }}</span>
-          </span>
-
-          <span class="action-details">
-            <small>My Shopping</small>
-            <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
-          </span>
-        </RouterLink>
-
-      </div>
-    </header>
-
-    <!-- MENU + SEARCH ROW -->
-    <div
-      ref="stickyNavigation"
-      class="sticky-navigation"
-      :class="{ 'is-fixed': isSticky }"
-    >
-
-      <!-- DESKTOP NAVIGATION -->
-      <nav class="desktop-navigation">
-
-        <RouterLink to="/categories" class="category-button">
-          <i class="bi bi-grid-fill"></i>
-          <span>All Categories</span>
-          <i class="bi bi-chevron-down category-arrow"></i>
-        </RouterLink>
-
-        <div class="nav-links">
-          <RouterLink to="/" exact-active-class="active">Home</RouterLink>
-          <RouterLink to="/shop">Shop</RouterLink>
-          <RouterLink to="/categories">Categories</RouterLink>
-          <RouterLink to="/deals">Deals</RouterLink>
-          <RouterLink to="/about">About</RouterLink>
-          <RouterLink to="/contact">Contact</RouterLink>
-        </div>
-
-        <!-- DESKTOP SEARCH -->
-        <div class="search-box">
-          <input
-            type="text"
-            placeholder="Search products..."
-            v-model="searchQuery"
-            @keyup.enter="searchProducts"
-          />
-
-          <button @click="searchProducts" aria-label="Search">
-            <i class="bi bi-search"></i>
-          </button>
-        </div>
-
+      <!-- NAVIGATION -->
+      <nav class="nav-links">
+        <RouterLink to="/" exact-active-class="active">Home</RouterLink>
+        <RouterLink to="/shop">Shop</RouterLink>
+        <RouterLink to="/categories">Categories</RouterLink>
+        <RouterLink to="/deals">Deals</RouterLink>
+        <RouterLink to="/about">About</RouterLink>
+        <RouterLink to="/contact">Contact</RouterLink>
       </nav>
 
-      <!-- MOBILE MENU + SEARCH -->
-      <div class="mobile-navigation-bar">
+      <!-- SEARCH -->
+      <div class="search-box">
+        <input
+          type="text"
+          placeholder="Search products..."
+          v-model="searchQuery"
+          @keyup.enter="searchProducts"
+        />
 
-        <button
-          class="mobile-menu-toggle"
-          @click="mobileMenuOpen = !mobileMenuOpen"
-          :aria-expanded="mobileMenuOpen"
-          aria-label="Toggle navigation"
-        >
-          <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
-          <span>Menu</span>
+        <button @click="searchProducts" aria-label="Search">
+          <i class="bi bi-search"></i>
         </button>
-
-        <div class="mobile-search">
-          <input
-            type="text"
-            placeholder="Search products..."
-            v-model="searchQuery"
-            @keyup.enter="searchProducts"
-          />
-
-          <button @click="searchProducts" aria-label="Search">
-            <i class="bi bi-search"></i>
-          </button>
-        </div>
-
       </div>
 
-      <!-- MOBILE NAVIGATION LINKS -->
-      <Transition name="mobile-menu">
-        <nav v-if="mobileMenuOpen" class="mobile-navigation">
+      <!-- SUPPORT -->
+      <a
+        href="mailto:support@bastrokutir.com"
+        class="header-action support-action"
+      >
+        <span class="action-icon">
+          <i class="bi bi-headset"></i>
+        </span>
 
-          <RouterLink
-            to="/categories"
-            class="mobile-category-link"
-            @click="closeMobileMenu"
-          >
-            <i class="bi bi-grid-fill"></i>
-            All Categories
-            <i class="bi bi-arrow-right"></i>
-          </RouterLink>
+        <span class="action-details">
+          <small>Need Help?</small>
+          <strong>Support</strong>
+        </span>
+      </a>
 
-          <RouterLink
-            to="/"
-            exact-active-class="active"
-            @click="closeMobileMenu"
-          >
-            <i class="bi bi-house"></i> Home
-          </RouterLink>
+      <!-- CART -->
+      <RouterLink to="/cart" class="header-action cart-action">
+        <span class="action-icon cart-icon">
+          <i class="bi bi-cart3"></i>
+          <span class="cart-count">{{ cartCount }}</span>
+        </span>
 
-          <RouterLink to="/shop" @click="closeMobileMenu">
-            <i class="bi bi-bag"></i> Shop
-          </RouterLink>
+        <span class="action-details">
+          <small>My Shopping</small>
+          <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
+        </span>
+      </RouterLink>
 
-          <RouterLink to="/categories" @click="closeMobileMenu">
-            <i class="bi bi-grid"></i> Categories
-          </RouterLink>
+      <!-- MOBILE MENU BUTTON -->
+      <button
+        class="mobile-menu-button"
+        @click="mobileMenuOpen = !mobileMenuOpen"
+        :aria-expanded="mobileMenuOpen"
+        aria-label="Toggle navigation"
+      >
+        <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+      </button>
 
-          <RouterLink to="/deals" @click="closeMobileMenu">
-            <i class="bi bi-tags"></i> Deals
-          </RouterLink>
+    </header>
 
-          <RouterLink to="/about" @click="closeMobileMenu">
-            <i class="bi bi-info-circle"></i> About
-          </RouterLink>
+    <!-- MOBILE NAVIGATION -->
+    <Transition name="mobile-menu">
+      <nav v-if="mobileMenuOpen" class="mobile-navigation">
 
-          <RouterLink to="/contact" @click="closeMobileMenu">
-            <i class="bi bi-envelope"></i> Contact
-          </RouterLink>
+        <RouterLink to="/" exact-active-class="active" @click="closeMobileMenu">
+          <i class="bi bi-house"></i> Home
+        </RouterLink>
 
-          <a href="mailto:support@bastrokutir.com">
-            <i class="bi bi-headset"></i> Customer Support
-          </a>
+        <RouterLink to="/shop" @click="closeMobileMenu">
+          <i class="bi bi-bag"></i> Shop
+        </RouterLink>
 
-        </nav>
-      </Transition>
+        <RouterLink to="/categories" @click="closeMobileMenu">
+          <i class="bi bi-grid"></i> Categories
+        </RouterLink>
 
-    </div>
+        <RouterLink to="/deals" @click="closeMobileMenu">
+          <i class="bi bi-tags"></i> Deals
+        </RouterLink>
 
-    <!-- SPACE PRESERVER WHEN MENU ROW BECOMES FIXED -->
-    <div
-      v-if="isSticky"
-      class="sticky-placeholder"
-      :style="{ height: stickyHeight + 'px' }"
-    ></div>
+        <RouterLink to="/about" @click="closeMobileMenu">
+          <i class="bi bi-info-circle"></i> About
+        </RouterLink>
+
+        <RouterLink to="/contact" @click="closeMobileMenu">
+          <i class="bi bi-envelope"></i> Contact
+        </RouterLink>
+
+        <a href="mailto:support@bastrokutir.com">
+          <i class="bi bi-headset"></i> Customer Support
+        </a>
+
+      </nav>
+    </Transition>
 
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted, nextTick, watch } from 'vue'
+import { ref } from 'vue'
 
 defineProps({
   cartCount: {
@@ -226,40 +138,6 @@ defineProps({
 
 const searchQuery = ref('')
 const mobileMenuOpen = ref(false)
-
-const stickyNavigation = ref(null)
-const isSticky = ref(false)
-const stickyHeight = ref(57)
-
-let stickyPosition = 0
-let resizeObserver = null
-
-function updateStickyPosition() {
-  if (!stickyNavigation.value || isSticky.value) return
-
-  stickyPosition =
-    stickyNavigation.value.getBoundingClientRect().top + window.scrollY
-
-  stickyHeight.value = stickyNavigation.value.offsetHeight
-}
-
-function handleScroll() {
-  if (!stickyNavigation.value) return
-
-  const shouldStick = window.scrollY >= stickyPosition
-
-  if (shouldStick !== isSticky.value) {
-    isSticky.value = shouldStick
-  }
-}
-
-function updateStickyHeight() {
-  nextTick(() => {
-    if (stickyNavigation.value) {
-      stickyHeight.value = stickyNavigation.value.offsetHeight
-    }
-  })
-}
 
 function searchProducts() {
   if (!searchQuery.value.trim()) return
@@ -276,38 +154,6 @@ function searchProducts() {
 function closeMobileMenu() {
   mobileMenuOpen.value = false
 }
-
-watch(mobileMenuOpen, () => {
-  updateStickyHeight()
-})
-
-onMounted(async () => {
-  await nextTick()
-
-  updateStickyPosition()
-
-  window.addEventListener('scroll', handleScroll, { passive: true })
-  window.addEventListener('resize', updateStickyPosition)
-
-  if (stickyNavigation.value && window.ResizeObserver) {
-    resizeObserver = new ResizeObserver(() => {
-      updateStickyHeight()
-    })
-
-    resizeObserver.observe(stickyNavigation.value)
-  }
-
-  handleScroll()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
-  window.removeEventListener('resize', updateStickyPosition)
-
-  if (resizeObserver) {
-    resizeObserver.disconnect()
-  }
-})
 </script>
 
 <style scoped>
@@ -315,70 +161,26 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
-/* HEADER WRAPPER */
+/* MAIN HEADER */
 
 .store-header {
-  position: relative;
+  position: sticky;
+  top: 0;
   width: 100%;
   z-index: 10000;
   background: #fff;
+  box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
 }
-
-/* TOP BAR */
-
-.top-bar {
-  height: 38px;
-  background: #f5f3fa;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 0 5.3%;
-  color: #55516a;
-  font-size: 12px;
-}
-
-.top-left {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.top-left i {
-  color: #7135d5;
-  font-size: 15px;
-}
-
-.top-center strong {
-  color: #7135d5;
-}
-
-.top-right {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-}
-
-.top-right a {
-  color: #55516a;
-  text-decoration: none;
-  transition: color .2s;
-}
-
-.top-right a:hover {
-  color: #7135d5;
-}
-
-/* MAIN HEADER */
 
 .main-header {
-  min-height: 82px;
-  padding: 0 5.3%;
+  min-height: 78px;
+  width: 100%;
+  padding: 0 3%;
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 25px;
+  gap: 20px;
   background: #fff;
-  border-bottom: 1px solid #f0edf5;
+  border-bottom: 1px solid #eeeaf5;
 }
 
 /* LOGO */
@@ -386,29 +188,29 @@ onUnmounted(() => {
 .logo {
   display: flex;
   align-items: center;
-  gap: 11px;
+  gap: 9px;
   color: #242039;
   text-decoration: none;
   flex-shrink: 0;
 }
 
 .logo-icon {
-  width: 45px;
-  height: 45px;
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
   background: linear-gradient(135deg, #ffb52e, #f58a13);
   color: #fff;
   display: grid;
   place-items: center;
-  font-size: 26px;
-  box-shadow: 0 4px 10px rgba(245, 138, 19, .18);
+  font-size: 24px;
 }
 
 .logo-text {
-  font-size: 26px;
+  font-size: 23px;
   font-weight: 850;
   letter-spacing: -1px;
   line-height: 1.05;
+  white-space: nowrap;
 }
 
 .logo-purple {
@@ -417,173 +219,56 @@ onUnmounted(() => {
 
 .logo-text small {
   display: block;
-  margin-top: 5px;
-  font-size: 9px;
+  margin-top: 4px;
+  font-size: 8px;
   font-weight: 600;
-  letter-spacing: 1.8px;
+  letter-spacing: 1.5px;
   color: #9691a6;
   text-transform: uppercase;
-}
-
-/* HEADER ACTIONS */
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 32px;
-}
-
-.header-action {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #29253d;
-  text-decoration: none;
-  transition: .2s;
-}
-
-.header-action:hover {
-  color: #7135d5;
-}
-
-.action-icon {
-  width: 43px;
-  height: 43px;
-  border-radius: 50%;
-  background: #f5f1fc;
-  display: grid;
-  place-items: center;
-  color: #7135d5;
-  font-size: 21px;
-  transition: .2s;
-}
-
-.header-action:hover .action-icon {
-  background: #7135d5;
-  color: #fff;
-}
-
-.action-details {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.action-details small {
-  color: #9993a9;
-  font-size: 10px;
-}
-
-.action-details strong {
-  font-size: 13px;
-  font-weight: 750;
-}
-
-.cart-icon {
-  position: relative;
-}
-
-.cart-count {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  min-width: 19px;
-  height: 19px;
-  padding: 0 4px;
-  border-radius: 20px;
-  background: #f04462;
-  color: white;
-  font-size: 10px;
-  display: grid;
-  place-items: center;
-  border: 2px solid #fff;
-}
-
-/* MENU + SEARCH ROW */
-
-.sticky-navigation {
-  position: relative;
-  width: 100%;
-  z-index: 10001;
-  background: #fff;
-  box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
-  border-bottom: 1px solid #eeeaf5;
-}
-
-/* FIXED STATE */
-
-.sticky-navigation.is-fixed {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  width: 100%;
-  z-index: 10001;
-  box-shadow: 0 4px 15px rgba(35, 24, 65, .12);
-}
-
-/* PLACEHOLDER */
-
-.sticky-placeholder {
-  width: 100%;
-  pointer-events: none;
-}
-
-/* DESKTOP NAVIGATION */
-
-.desktop-navigation {
-  min-height: 57px;
-  padding: 0 5.3%;
-  display: flex;
-  align-items: center;
-  gap: 23px;
 }
 
 /* CATEGORY BUTTON */
 
 .category-button {
   height: 38px;
-  min-width: 165px;
-  padding: 0 13px;
+  padding: 0 12px;
   border-radius: 7px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 9px;
+  justify-content: center;
+  gap: 8px;
   flex-shrink: 0;
   background: linear-gradient(110deg, #7434d4, #9250e9);
   color: white;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
-  box-shadow: 0 4px 10px rgba(113, 53, 213, .15);
   transition: .2s;
 }
 
 .category-button:hover {
-  background: linear-gradient(110deg, #6225c2, #8138dc);
+  background: #6225c2;
   color: white;
 }
 
-/* NAV LINKS */
+/* NAVIGATION */
 
 .nav-links {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(13px, 1.8vw, 25px);
-  min-width: 0;
+  gap: clamp(10px, 1.2vw, 18px);
+  flex-shrink: 0;
 }
 
 .nav-links a {
-  height: 57px;
+  height: 78px;
   position: relative;
   display: flex;
   align-items: center;
   white-space: nowrap;
   color: #464157;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 650;
   text-decoration: none;
   transition: color .2s;
@@ -605,12 +290,13 @@ onUnmounted(() => {
   background: #7135d5;
 }
 
-/* DESKTOP SEARCH */
+/* SEARCH */
 
 .search-box {
-  width: 205px;
-  height: 36px;
-  flex-shrink: 0;
+  height: 37px;
+  flex: 1;
+  min-width: 120px;
+  max-width: 230px;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -631,7 +317,7 @@ onUnmounted(() => {
   min-width: 0;
   flex: 1;
   height: 100%;
-  padding: 0 12px;
+  padding: 0 11px;
   border: none;
   outline: none;
   background: transparent;
@@ -645,24 +331,106 @@ onUnmounted(() => {
 
 .search-box button {
   width: 37px;
-  height: 36px;
+  height: 37px;
   flex-shrink: 0;
   border: none;
   background: #7135d5;
   color: white;
   font-size: 14px;
   cursor: pointer;
-  transition: .2s;
 }
 
 .search-box button:hover {
   background: #5822b5;
 }
 
-/* MOBILE ELEMENTS */
+/* SUPPORT AND CART */
 
-.mobile-menu-button,
-.mobile-navigation-bar,
+.header-action {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #29253d;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: .2s;
+}
+
+.header-action:hover {
+  color: #7135d5;
+}
+
+.action-icon {
+  width: 39px;
+  height: 39px;
+  border-radius: 50%;
+  background: #f5f1fc;
+  display: grid;
+  place-items: center;
+  color: #7135d5;
+  font-size: 19px;
+  transition: .2s;
+}
+
+.header-action:hover .action-icon {
+  background: #7135d5;
+  color: #fff;
+}
+
+.action-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  white-space: nowrap;
+}
+
+.action-details small {
+  color: #9993a9;
+  font-size: 9px;
+}
+
+.action-details strong {
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.cart-icon {
+  position: relative;
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 20px;
+  background: #f04462;
+  color: white;
+  font-size: 10px;
+  display: grid;
+  place-items: center;
+  border: 2px solid #fff;
+}
+
+/* MOBILE MENU BUTTON */
+
+.mobile-menu-button {
+  display: none;
+  width: 37px;
+  height: 37px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 7px;
+  background: #f2ecfb;
+  color: #7135d5;
+  font-size: 21px;
+  cursor: pointer;
+}
+
+/* MOBILE NAVIGATION */
+
 .mobile-navigation {
   display: none;
 }
@@ -670,69 +438,24 @@ onUnmounted(() => {
 /* MEDIUM DESKTOP */
 
 @media (max-width: 1250px) and (min-width: 769px) {
-  .main-header,
-  .desktop-navigation {
-    padding-left: 3%;
-    padding-right: 3%;
-  }
-
-  .desktop-navigation {
-    gap: 14px;
-  }
-
-  .category-button {
-    min-width: 145px;
-  }
-
-  .nav-links {
-    gap: 13px;
-  }
-
-  .nav-links a {
-    font-size: 12px;
-  }
-
-  .search-box {
-    width: 175px;
-  }
-
-  .header-actions {
-    gap: 20px;
-  }
-}
-
-@media (max-width: 1000px) and (min-width: 769px) {
-  .main-header,
-  .desktop-navigation {
-    padding-left: 2%;
-    padding-right: 2%;
-  }
-
-  .logo-text {
-    font-size: 23px;
-  }
-
-  .logo-icon {
-    width: 41px;
-    height: 41px;
-  }
-
-  .header-actions {
+  .main-header {
+    padding: 0 2%;
     gap: 12px;
   }
 
-  .action-details small {
-    display: none;
+  .logo-text {
+    font-size: 20px;
   }
 
-  .desktop-navigation {
-    gap: 10px;
+  .logo-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 21px;
   }
 
   .category-button {
-    min-width: 125px;
-    font-size: 10px;
-    gap: 5px;
+    padding: 0 9px;
+    font-size: 11px;
   }
 
   .nav-links {
@@ -744,66 +467,120 @@ onUnmounted(() => {
   }
 
   .search-box {
-    width: 145px;
+    max-width: 180px;
+  }
+
+  .action-details small {
+    display: none;
+  }
+
+  .action-icon {
+    width: 35px;
+    height: 35px;
+  }
+}
+
+/* SMALLER DESKTOP */
+
+@media (max-width: 1000px) and (min-width: 769px) {
+  .main-header {
+    gap: 9px;
+    padding: 0 1.5%;
+  }
+
+  .logo-text {
+    font-size: 18px;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 19px;
+  }
+
+  .category-button {
+    font-size: 10px;
+    gap: 5px;
+  }
+
+  .nav-links {
+    gap: 8px;
+  }
+
+  .nav-links a {
+    font-size: 10px;
+  }
+
+  .search-box {
+    max-width: 140px;
   }
 
   .search-box input {
-    padding: 0 8px;
     font-size: 10px;
+    padding: 0 7px;
+  }
+
+  .support-action .action-details,
+  .cart-action .action-details {
+    display: none;
   }
 }
 
 /* MOBILE */
 
 @media (max-width: 768px) {
-
-  .top-bar {
-    height: 30px;
-    padding: 0 15px;
-    font-size: 10px;
-  }
-
-  .top-center,
-  .top-right {
-    display: none;
-  }
-
   .main-header {
     min-height: 65px;
-    padding: 0 15px;
-    gap: 10px;
+    padding: 0 12px;
+    gap: 9px;
   }
 
   .logo {
-    gap: 8px;
+    gap: 6px;
   }
 
   .logo-icon {
-    width: 36px;
-    height: 36px;
-    font-size: 21px;
-    border-radius: 9px;
+    width: 34px;
+    height: 34px;
+    font-size: 19px;
+    border-radius: 8px;
   }
 
   .logo-text {
-    font-size: 21px;
+    font-size: 18px;
   }
 
   .logo-text small {
-    font-size: 8px;
-    letter-spacing: 1.4px;
+    font-size: 7px;
+    letter-spacing: 1px;
   }
 
-  .header-actions {
-    gap: 0;
+  .category-button {
+    display: none;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .search-box {
+    flex: 1;
+    min-width: 0;
+    height: 35px;
+  }
+
+  .search-box input {
+    padding: 0 9px;
+    font-size: 10px;
+  }
+
+  .search-box button {
+    width: 34px;
+    height: 35px;
   }
 
   .support-action {
     display: none;
-  }
-
-  .cart-action {
-    gap: 0;
   }
 
   .cart-action .action-details {
@@ -811,93 +588,29 @@ onUnmounted(() => {
   }
 
   .cart-action .action-icon {
-    width: 39px;
-    height: 39px;
-    font-size: 20px;
-  }
-
-  /* MOBILE MENU + SEARCH */
-
-  .desktop-navigation {
-    display: none;
-  }
-
-  .mobile-navigation-bar {
-    min-height: 55px;
-    padding: 0 15px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .mobile-menu-toggle {
-    height: 36px;
-    padding: 0 11px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 7px;
-    flex-shrink: 0;
-    border: none;
-    border-radius: 6px;
-    background: #f2ecfb;
-    color: #7135d5;
-    font-size: 13px;
-    font-weight: 700;
-    cursor: pointer;
-  }
-
-  .mobile-menu-toggle i {
+    width: 34px;
+    height: 34px;
     font-size: 18px;
   }
 
-  .mobile-search {
-    height: 37px;
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    overflow: hidden;
-    border: 1px solid #e9e4f1;
-    border-radius: 22px;
-    background: #f8f6fb;
+  .mobile-menu-button {
+    display: grid;
+    place-items: center;
   }
-
-  .mobile-search input {
-    flex: 1;
-    width: 100%;
-    min-width: 0;
-    padding: 0 12px;
-    border: none;
-    outline: none;
-    background: transparent;
-    font-size: 11px;
-  }
-
-  .mobile-search button {
-    width: 38px;
-    flex-shrink: 0;
-    border: none;
-    background: #7135d5;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-  }
-
-  /* MOBILE MENU LINKS */
 
   .mobile-navigation {
     display: flex;
     flex-direction: column;
-    padding: 10px 16px 15px;
+    padding: 8px 16px 14px;
     background: #fff;
     border-top: 1px solid #eeeaf5;
     box-shadow: 0 12px 20px rgba(0, 0, 0, .10);
-    max-height: calc(100vh - 90px);
+    max-height: calc(100vh - 65px);
     overflow-y: auto;
   }
 
-  .mobile-navigation > a {
-    min-height: 46px;
+  .mobile-navigation a {
+    min-height: 44px;
     display: flex;
     align-items: center;
     gap: 12px;
@@ -908,32 +621,47 @@ onUnmounted(() => {
     font-weight: 600;
   }
 
-  .mobile-navigation > a > i {
+  .mobile-navigation a i {
     color: #7135d5;
     font-size: 17px;
   }
 
-  .mobile-navigation > a.router-link-active {
+  .mobile-navigation a.router-link-active {
     color: #7135d5;
-  }
-
-  .mobile-navigation .mobile-category-link {
-    min-height: 43px;
-    justify-content: flex-start;
-    padding: 0 12px;
-    margin: 4px 0 9px;
-    border: none;
-    border-radius: 6px;
-    background: #f4effc;
-    color: #7135d5;
-  }
-
-  .mobile-category-link i:last-child {
-    margin-left: auto;
   }
 }
 
-/* MOBILE MENU ANIMATION */
+/* VERY SMALL MOBILE */
+
+@media (max-width: 380px) {
+  .main-header {
+    gap: 6px;
+    padding: 0 8px;
+  }
+
+  .logo-text {
+    font-size: 16px;
+  }
+
+  .logo-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 17px;
+  }
+
+  .search-box input {
+    font-size: 9px;
+    padding: 0 6px;
+  }
+
+  .mobile-menu-button,
+  .cart-action .action-icon {
+    width: 31px;
+    height: 31px;
+  }
+}
+
+/* MENU ANIMATION */
 
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
