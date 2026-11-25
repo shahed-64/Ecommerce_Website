@@ -1,5 +1,6 @@
 <template>
   <div class="store-header">
+
     <header class="main-header">
 
       <!-- LOGO -->
@@ -12,12 +13,6 @@
           Bastro<span class="logo-purple">Kutir</span>
           <small>Fashion & Lifestyle</small>
         </span>
-      </RouterLink>
-
-      <!-- CATEGORY BUTTON -->
-      <RouterLink to="/categories" class="category-button">
-        <i class="bi bi-grid-fill"></i>
-        <span>Categories</span>
       </RouterLink>
 
       <!-- NAVIGATION -->
@@ -44,33 +39,38 @@
         </button>
       </div>
 
-      <!-- SUPPORT -->
-      <a
-        href="mailto:support@bastrokutir.com"
-        class="header-action support-action"
-      >
-        <span class="action-icon">
-          <i class="bi bi-headset"></i>
-        </span>
+      <!-- RIGHT ACTIONS -->
+      <div class="header-actions">
 
-        <span class="action-details">
-          <small>Need Help?</small>
-          <strong>Support</strong>
-        </span>
-      </a>
+        <!-- SUPPORT -->
+        <a
+          href="mailto:support@bastrokutir.com"
+          class="header-action support-action"
+        >
+          <span class="action-icon">
+            <i class="bi bi-headset"></i>
+          </span>
 
-      <!-- CART -->
-      <RouterLink to="/cart" class="header-action cart-action">
-        <span class="action-icon cart-icon">
-          <i class="bi bi-cart3"></i>
-          <span class="cart-count">{{ cartCount }}</span>
-        </span>
+          <span class="action-details">
+            <small>Need Help?</small>
+            <strong>Support</strong>
+          </span>
+        </a>
 
-        <span class="action-details">
-          <small>My Shopping</small>
-          <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
-        </span>
-      </RouterLink>
+        <!-- CART -->
+        <RouterLink to="/cart" class="header-action cart-action">
+          <span class="action-icon cart-icon">
+            <i class="bi bi-cart3"></i>
+            <span class="cart-count">{{ cartCount }}</span>
+          </span>
+
+          <span class="action-details">
+            <small>My Shopping</small>
+            <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
+          </span>
+        </RouterLink>
+
+      </div>
 
       <!-- MOBILE MENU BUTTON -->
       <button
@@ -173,12 +173,12 @@ function closeMobileMenu() {
 }
 
 .main-header {
-  min-height: 78px;
   width: 100%;
+  min-height: 78px;
   padding: 0 3%;
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 22px;
   background: #fff;
   border-bottom: 1px solid #eeeaf5;
 }
@@ -227,37 +227,13 @@ function closeMobileMenu() {
   text-transform: uppercase;
 }
 
-/* CATEGORY BUTTON */
-
-.category-button {
-  height: 38px;
-  padding: 0 12px;
-  border-radius: 7px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex-shrink: 0;
-  background: linear-gradient(110deg, #7434d4, #9250e9);
-  color: white;
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: .2s;
-}
-
-.category-button:hover {
-  background: #6225c2;
-  color: white;
-}
-
 /* NAVIGATION */
 
 .nav-links {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(10px, 1.2vw, 18px);
+  gap: clamp(12px, 1.4vw, 21px);
   flex-shrink: 0;
 }
 
@@ -295,7 +271,7 @@ function closeMobileMenu() {
 .search-box {
   height: 37px;
   flex: 1;
-  min-width: 120px;
+  min-width: 110px;
   max-width: 230px;
   display: flex;
   align-items: center;
@@ -345,6 +321,14 @@ function closeMobileMenu() {
 }
 
 /* SUPPORT AND CART */
+
+.header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-shrink: 0;
+}
 
 .header-action {
   display: flex;
@@ -435,12 +419,12 @@ function closeMobileMenu() {
   display: none;
 }
 
-/* MEDIUM DESKTOP */
+/* DESKTOP RESPONSIVE */
 
 @media (max-width: 1250px) and (min-width: 769px) {
   .main-header {
     padding: 0 2%;
-    gap: 12px;
+    gap: 13px;
   }
 
   .logo-text {
@@ -453,17 +437,16 @@ function closeMobileMenu() {
     font-size: 21px;
   }
 
-  .category-button {
-    padding: 0 9px;
-    font-size: 11px;
-  }
-
   .nav-links {
-    gap: 10px;
+    gap: 11px;
   }
 
   .nav-links a {
     font-size: 11px;
+  }
+
+  .header-actions {
+    gap: 12px;
   }
 
   .search-box {
@@ -480,7 +463,7 @@ function closeMobileMenu() {
   }
 }
 
-/* SMALLER DESKTOP */
+/* SMALL DESKTOP */
 
 @media (max-width: 1000px) and (min-width: 769px) {
   .main-header {
@@ -496,11 +479,6 @@ function closeMobileMenu() {
     width: 34px;
     height: 34px;
     font-size: 19px;
-  }
-
-  .category-button {
-    font-size: 10px;
-    gap: 5px;
   }
 
   .nav-links {
@@ -553,10 +531,6 @@ function closeMobileMenu() {
   .logo-text small {
     font-size: 7px;
     letter-spacing: 1px;
-  }
-
-  .category-button {
-    display: none;
   }
 
   .nav-links {
@@ -661,7 +635,7 @@ function closeMobileMenu() {
   }
 }
 
-/* MENU ANIMATION */
+/* MOBILE MENU ANIMATION */
 
 .mobile-menu-enter-active,
 .mobile-menu-leave-active {
