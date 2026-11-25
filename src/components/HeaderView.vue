@@ -1,123 +1,127 @@
 <template>
-  <div class="store-header">
-    <header class="main-header">
+  <div class="store-header-wrapper">
+    <div class="store-header">
+      <header class="main-header">
 
-      <!-- LOGO -->
-      <RouterLink to="/" class="logo">
-        <span class="logo-icon">
-          <i class="bi bi-bag-heart-fill"></i>
-        </span>
+        <!-- LOGO -->
+        <RouterLink to="/" class="logo">
+          <span class="logo-icon">
+            <i class="bi bi-bag-heart-fill"></i>
+          </span>
 
-        <span class="logo-text">
-          Bastro<span class="logo-purple">Kutir</span>
-          <small>Fashion & Lifestyle</small>
-        </span>
-      </RouterLink>
+          <span class="logo-text">
+            Bastro<span class="logo-purple">Kutir</span>
+            <small>Fashion & Lifestyle</small>
+          </span>
+        </RouterLink>
 
-      <!-- NAVIGATION -->
-      <nav class="nav-links">
-        <RouterLink to="/" exact-active-class="active">Home</RouterLink>
-        <RouterLink to="/shop">Shop</RouterLink>
-        <RouterLink to="/categories">Categories</RouterLink>
-        <RouterLink to="/deals">Deals</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-        <RouterLink to="/contact">Contact</RouterLink>
-      </nav>
+        <!-- NAVIGATION -->
+        <nav class="nav-links">
+          <RouterLink to="/" exact-active-class="active">Home</RouterLink>
+          <RouterLink to="/shop">Shop</RouterLink>
+          <RouterLink to="/categories">Categories</RouterLink>
+          <RouterLink to="/deals">Deals</RouterLink>
+          <RouterLink to="/about">About</RouterLink>
+          <RouterLink to="/contact">Contact</RouterLink>
+        </nav>
 
-      <!-- SEARCH -->
-      <div class="search-box">
-        <input
-          type="text"
-          placeholder="Search products..."
-          v-model="searchQuery"
-          @keyup.enter="searchProducts"
-        />
+        <!-- SEARCH -->
+        <div class="search-box">
+          <input
+            type="text"
+            placeholder="Search products..."
+            v-model="searchQuery"
+            @keyup.enter="searchProducts"
+          />
 
-        <button @click="searchProducts" aria-label="Search">
-          <i class="bi bi-search"></i>
-        </button>
-      </div>
+          <button @click="searchProducts" aria-label="Search">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
 
-      <!-- RIGHT ACTIONS -->
-      <div class="header-actions">
+        <!-- RIGHT ACTIONS -->
+        <div class="header-actions">
 
-        <!-- SUPPORT -->
-        <a
-          href="mailto:support@bastrokutir.com"
-          class="header-action support-action"
+          <!-- SUPPORT -->
+          <a
+            href="mailto:support@bastrokutir.com"
+            class="header-action support-action"
+          >
+            <span class="action-icon">
+              <i class="bi bi-headset"></i>
+            </span>
+
+            <span class="action-details">
+              <small>Need Help?</small>
+              <strong>Support</strong>
+            </span>
+          </a>
+
+          <!-- CART -->
+          <RouterLink to="/cart" class="header-action cart-action">
+            <span class="action-icon cart-icon">
+              <i class="bi bi-cart3"></i>
+              <span class="cart-count">{{ cartCount }}</span>
+            </span>
+
+            <span class="action-details">
+              <small>My Shopping</small>
+              <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
+            </span>
+          </RouterLink>
+
+        </div>
+
+        <!-- MOBILE MENU BUTTON -->
+        <button
+          class="mobile-menu-button"
+          @click="mobileMenuOpen = !mobileMenuOpen"
+          :aria-expanded="mobileMenuOpen"
+          aria-label="Toggle navigation"
         >
-          <span class="action-icon">
-            <i class="bi bi-headset"></i>
-          </span>
+          <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
+        </button>
 
-          <span class="action-details">
-            <small>Need Help?</small>
-            <strong>Support</strong>
-          </span>
-        </a>
+      </header>
 
-        <!-- CART -->
-        <RouterLink to="/cart" class="header-action cart-action">
-          <span class="action-icon cart-icon">
-            <i class="bi bi-cart3"></i>
-            <span class="cart-count">{{ cartCount }}</span>
-          </span>
+      <!-- MOBILE NAVIGATION -->
+      <Transition name="mobile-menu">
+        <nav v-if="mobileMenuOpen" class="mobile-navigation">
 
-          <span class="action-details">
-            <small>My Shopping</small>
-            <strong>৳{{ cartTotal.toLocaleString('en-BD') }}</strong>
-          </span>
-        </RouterLink>
+          <RouterLink to="/" exact-active-class="active" @click="closeMobileMenu">
+            <i class="bi bi-house"></i> Home
+          </RouterLink>
 
-      </div>
+          <RouterLink to="/shop" @click="closeMobileMenu">
+            <i class="bi bi-bag"></i> Shop
+          </RouterLink>
 
-      <!-- MOBILE MENU BUTTON -->
-      <button
-        class="mobile-menu-button"
-        @click="mobileMenuOpen = !mobileMenuOpen"
-        :aria-expanded="mobileMenuOpen"
-        aria-label="Toggle navigation"
-      >
-        <i :class="mobileMenuOpen ? 'bi bi-x-lg' : 'bi bi-list'"></i>
-      </button>
+          <RouterLink to="/categories" @click="closeMobileMenu">
+            <i class="bi bi-grid"></i> Categories
+          </RouterLink>
 
-    </header>
+          <RouterLink to="/deals" @click="closeMobileMenu">
+            <i class="bi bi-tags"></i> Deals
+          </RouterLink>
 
-    <!-- MOBILE NAVIGATION -->
-    <Transition name="mobile-menu">
-      <nav v-if="mobileMenuOpen" class="mobile-navigation">
+          <RouterLink to="/about" @click="closeMobileMenu">
+            <i class="bi bi-info-circle"></i> About
+          </RouterLink>
 
-        <RouterLink to="/" exact-active-class="active" @click="closeMobileMenu">
-          <i class="bi bi-house"></i> Home
-        </RouterLink>
+          <RouterLink to="/contact" @click="closeMobileMenu">
+            <i class="bi bi-envelope"></i> Contact
+          </RouterLink>
 
-        <RouterLink to="/shop" @click="closeMobileMenu">
-          <i class="bi bi-bag"></i> Shop
-        </RouterLink>
+          <a href="mailto:support@bastrokutir.com">
+            <i class="bi bi-headset"></i> Customer Support
+          </a>
 
-        <RouterLink to="/categories" @click="closeMobileMenu">
-          <i class="bi bi-grid"></i> Categories
-        </RouterLink>
+        </nav>
+      </Transition>
+    </div>
 
-        <RouterLink to="/deals" @click="closeMobileMenu">
-          <i class="bi bi-tags"></i> Deals
-        </RouterLink>
-
-        <RouterLink to="/about" @click="closeMobileMenu">
-          <i class="bi bi-info-circle"></i> About
-        </RouterLink>
-
-        <RouterLink to="/contact" @click="closeMobileMenu">
-          <i class="bi bi-envelope"></i> Contact
-        </RouterLink>
-
-        <a href="mailto:support@bastrokutir.com">
-          <i class="bi bi-headset"></i> Customer Support
-        </a>
-
-      </nav>
-    </Transition>
-
+    <!-- FIXED HEADER-ER JONNO SPACE (CONTENT JENO NICHE NA DUKE) -->
+    <div class="store-header-spacer" aria-hidden="true"></div>
   </div>
 </template>
 
@@ -156,21 +160,29 @@ function closeMobileMenu() {
 </script>
 
 <style scoped>
-* {
+.store-header-wrapper,
+.store-header-wrapper *,
+.store-header-wrapper *::before,
+.store-header-wrapper *::after {
   box-sizing: border-box;
 }
 
-/* MAIN HEADER */
+/* FIXED HEADER */
 
 .store-header {
-  position: sticky !important;
-  top: 0 !important;
+  position: fixed;
+  top: 0;
   left: 0;
+  right: 0;
   width: 100%;
   z-index: 100000;
   background: #fff;
   box-shadow: 0 4px 15px rgba(35, 24, 65, .08);
-  align-self: flex-start;
+}
+
+.store-header-spacer {
+  height: 78px;
+  width: 100%;
 }
 
 .main-header {
@@ -508,6 +520,10 @@ function closeMobileMenu() {
 /* MOBILE */
 
 @media (max-width: 768px) {
+  .store-header-spacer {
+    height: 65px;
+  }
+
   .main-header {
     min-height: 65px;
     padding: 0 12px;
